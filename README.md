@@ -27,7 +27,9 @@ Avant de fixer mon choix, j'ai exploré plusieurs avenues pour lier l'IA à mon 
 | **Triage IA (Choix final)** | **Création d'une API Flask pour classifier et prioriser les billets de support.** | **Défi technique motivant (Python) et application directe à mon milieu de travail.** |
 
 ### Choix du projet et justification
-J'ai choisi de développer une solution de triage automatisé pour un système de billetterie générique (*ITSM). Ce projet représente un réel défi d'apprentissage : bien que je sois à l'aise avec Ruby on Rails et Angular pour le développement web, je n'ai jamais utilisé **Python** ni le micro-framework **Flask**. Sortir de ma zone de confort en apprenant un nouvel écosystème tout en répondant à un besoin concret en support technique constitue pour moi une expérience de veille technologique idéale.
+J'ai choisi de développer une solution de triage automatisé pour un système de billetterie générique (ITSM*). Ce projet représente un réel défi d'apprentissage : bien que je sois à l'aise avec Ruby on Rails et Angular pour le développement web, je n'ai jamais utilisé **Python** ni le micro-framework **Flask**. Sortir de ma zone de confort en apprenant un nouvel écosystème tout en répondant à un besoin concret en support technique constitue pour moi une expérience de veille technologique idéale.
+
+*ITSM (IT Service Management) : La gestion des services informatiques est la pratique consistant à planifier, mettre en œuvre, gérer et optimiser la fourniture de bout en bout de services informatiques afin de répondre aux besoins des utilisateurs et aux objectifs commerciaux.
 
 ---
 
@@ -86,8 +88,6 @@ Le développement sera organisé en phases intensives pour respecter le délai d
 * **Code Propre** : Utilisation des standards Python (PEP 8) et documentation claire pour l'installation des dépendances.
 
 ---
-
-* IT service management
 
 # Conclusion
 
