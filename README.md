@@ -2,16 +2,15 @@
 
 **Titre du projet** : Automatisation du triage des incidents informatiques via une API Flask et l'IA  
 **Date de remise** : 19 avril 2026  
-**Étudiant** : Gabriel Racine  
-**Cours** : Veille technologique (420-1SH-SW) - Cégep de Shawinigan  
+**Réalisé par** : Gabriel Racine  
 
 ---
 
 # Introduction
 
 Dans le cadre de mon cheminement en informatique et de mon expérience en soutien aux 
-opérations, j'ai constaté que la gestion manuelle du volume de billets peut rapidement 
-devenir un goulot d'étranglement. L'identification de la nature d'un incident et son 
+opérations, j'ai constaté que la gestion manuelle du volume de billets peut rapidement devenir un frein à l'efficacité. 
+L'identification de la nature d'un incident et son 
 niveau d'urgence sont des étapes critiques pour le respect des ententes de niveau de 
 service (SLA) dans tout centre de services.
 
