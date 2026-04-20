@@ -37,13 +37,13 @@ domaine professionnel :
 
 J'ai choisi de développer une solution de triage automatisé pour un système de 
 billetterie générique (ITSM*). Ce projet représente un réel défi d'apprentissage : 
-bien que je sois à l'aise avec Ruby on Rails et Angular pour le développement web, 
+bien que j'ai de l'expérience avec Ruby on Rails et Angular pour le développement web, 
 je n'ai jamais utilisé **Python** ni le micro-framework **Flask**. Sortir de ma zone 
 de confort en apprenant un nouvel écosystème tout en répondant à un besoin concret 
 en support technique constitue pour moi une expérience de veille technologique idéale.
 
 *ITSM (IT Service Management) : La gestion des services informatiques est la pratique 
-consistant à planifier, mettre en œuvre, gérer et optimiser la fourniture de bout en 
+consistant à planifier, mettre en œuvre, gérer et optimiser l'accompagnement de bout en 
 bout de services informatiques afin de répondre aux besoins des utilisateurs et aux 
 objectifs commerciaux.
 
@@ -110,7 +110,7 @@ Le développement sera organisé en phases intensives pour respecter le délai d
 
 * **Langage de programmation** : Python.
 * **Framework Web** : Flask (Nouvelle technologie explorée).
-* **Intelligence Artificielle** : API Google Gemini Pro (via Google AI Studio).
+* **Intelligence Artificielle** : API Google Gemini Pro (via Google AI Studio / Google Gen AI Python SDK).
 * **Logiciel cible** : Simulation de données d'un centre de services (ITSM).
 * **Gestion de versions** : Git et GitHub.
 
@@ -144,7 +144,7 @@ idées de projet et formuler cette proposition.
 3. Quelles technologies Python devrais-je utiliser pour sortir de ma zone de confort (Ruby/Angular) ?
 4. Peux-tu reformuler ma méthodologie pour un projet Flask sur 7 jours ?
 5. Intègre Flask dans ma proposition formelle.
-6. Crée un tableau de prérecherche comparant mes 4 idées de projets.
+6. Crée un tableau de prérecherche comparant mes 3 idées de projets.
 7. Ajuste le document pour qu'il soit plus généraliste et qu'il ne fasse pas référence à un 
    logiciel spécifique, en utilisant plutôt des termes comme centre de services ou ITSM.
 ```
