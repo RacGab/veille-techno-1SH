@@ -122,7 +122,7 @@ Le développement sera organisé en phases intensives pour respecter le délai d
   libre (JSON) et de retourner une catégorie (ex. : Matériel, Logiciel, Réseau, Accès) 
   ainsi qu'un niveau de priorité (Faible, Moyen, Élevé, Critique).
 
-- **Validation par jeu de test** : Le système sera évalué sur un ensemble d'au moins 
+- **Validation par données de test** : Le système sera évalué sur un ensemble d'au moins 
   20 billets simulés couvrant les quatre catégories. Le projet sera considéré réussi 
   si le taux de classification correcte atteint 80 % selon une validation humaine.
 
