@@ -102,7 +102,7 @@ Le développement sera organisé en phases intensives pour respecter le délai d
 * Ajustements des paramètres du modèle pour améliorer la précision.
 
 **Jour 7 : Documentation et Rapport final**
-* Rédaction du fichier `README.md` et finalisation du rapport de veille.
+* Rédaction du fichier `README.md` et finalisation du rapport final.
 
 ---
 
