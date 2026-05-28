@@ -1,0 +1,32 @@
+[
+  {
+    "id": "INC-1001",
+    "description": "Impossible de finaliser l'enrôlement du nouvel appareil mobile. J'ai remarqué que si on éteint le Samsung A36 pendant la configuration initiale, ça contourne complètement l'inscription Microsoft Intune. L'appareil se retrouve sur le réseau sans aucune politique de sécurité appliquée.",
+    "categorie_attendue": "Logiciel",
+    "priorite_attendue": "Critique"
+  },
+  {
+    "id": "INC-1002",
+    "description": "Mon compte semble verrouillé sur la plateforme Octopus après trois mauvaises tentatives de mot de passe ce matin. Je suis complètement bloqué pour assigner mes tâches.",
+    "categorie_attendue": "Accès",
+    "priorite_attendue": "Élevé"
+  },
+  {
+    "id": "INC-1003",
+    "description": "Le routeur du troisième étage clignote en rouge. Plus personne dans mon département n'a accès à Internet ou aux serveurs internes de l'entreprise.",
+    "categorie_attendue": "Réseau",
+    "priorite_attendue": "Critique"
+  },
+  {
+    "id": "INC-1004",
+    "description": "Le système de gestion des ressources alimentaires affiche une erreur 500 dans le navigateur à chaque fois que j'essaie de générer le rapport d'inventaire mensuel.",
+    "categorie_attendue": "Logiciel",
+    "priorite_attendue": "Moyen"
+  },
+  {
+    "id": "INC-1005",
+    "description": "La roulette de ma souris sans fil accroche un peu quand je défile vers le bas. J'aimerais la faire remplacer quand un technicien aura du temps libre.",
+    "categorie_attendue": "Matériel",
+    "priorite_attendue": "Faible"
+  }
+]
