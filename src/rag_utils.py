@@ -5,7 +5,7 @@ import os
 def get_embedding(client, text):
     """Génère un vecteur (embedding) pour un texte donné via Gemini."""
     result = client.models.embed_content(
-        model="text-embedding-004",
+        model="gemini-embedding-2",
         contents=text
     )
     return result.embeddings[0].values
