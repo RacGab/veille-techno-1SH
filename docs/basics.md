@@ -6,12 +6,12 @@ Ce dépôt fait office de base de connaissances et de code source pour le dével
 
 ---
 
-## 📚 Base de connaissances (Cahier de recherche)
+# 📚 Base de connaissances
 
-Conformément aux exigences du cours, ce dépôt est structuré pour documenter mon apprentissage du langage Python, du framework Flask et de l'intégration de l'intelligence artificielle (RAG).
+Voici les liens vers la documentation du projet :
 
-* 🔗 **[Suivi 01 : Document des liens et cahier de recherche](travaux/suivi_01_liens.md)**
-* 🧠 **[Carte mentale de l'architecture du projet (PDF / MM)](assets/)** *(À venir)*
+* 🔗 **[Suivi 01 : Document des liens et cahier de recherche](../travaux/suivi_01_liens.md)**
+* 🧠 **[Carte mentale de l'architecture du projet](../assets/mindmap.pdf)** *(À adapter selon le nom et l'emplacement exact du fichier)*
 
 ---
 
