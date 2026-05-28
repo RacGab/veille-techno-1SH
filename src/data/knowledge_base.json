@@ -1,0 +1,22 @@
+[
+  {
+    "titre": "Problème d'accès et mots de passe",
+    "contenu": "Pour tout compte verrouillé ou mot de passe oublié, vérifier l'identité de l'utilisateur. Si c'est Octopus, déverrouiller via la console admin. Priorité normale sauf si c'est un cadre (VIP).",
+    "categorie": "Accès"
+  },
+  {
+    "titre": "Panne de réseau local (Wi-Fi/Ethernet)",
+    "contenu": "Si plusieurs utilisateurs sont impactés, vérifier le commutateur ou la borne Wi-Fi. Si le routeur clignote rouge, c'est un incident critique impactant la continuité des affaires.",
+    "categorie": "Réseau"
+  },
+  {
+    "titre": "Bogue logiciel métier",
+    "contenu": "Pour les erreurs 500 ou crashs d'applications, demander une capture d'écran. Vérifier si une mise à jour est en attente. Priorité moyenne.",
+    "categorie": "Logiciel"
+  },
+  {
+    "titre": "Défectuosité matérielle (Souris, Clavier, Écran)",
+    "contenu": "Le matériel défectueux doit être remplacé sous 48h. Ce sont des demandes à faible priorité (Low) car elles n'empêchent pas totalement le travail.",
+    "categorie": "Matériel"
+  }
+]

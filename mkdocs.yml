@@ -18,6 +18,7 @@ theme:
 nav:
   - Accueil: index.md
   - Recherche: recherche.md
+  - Architecture RAG: architecture_rag.md
   - Guide Technique: basics.md
 
 markdown_extensions:
