@@ -28,12 +28,12 @@ Si vous clonez ce projet pour la première fois, le dossier `venv` et le fichier
 2. **Créer et activer un nouvel environnement virtuel :**
 ```bash
 # Création
-   python -m venv venv
-   
-   # Activation (Windows)
-   venv\Scripts\activate
-   # Activation (Mac/Linux)
-   source venv/bin/activate
+python -m venv venv
+
+# Activation (Windows)
+venv\Scripts\activate
+# Activation (Mac/Linux)
+source venv/bin/activate
 ```
 
 3. Installer les dépendances requises :
