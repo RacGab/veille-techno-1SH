@@ -15,6 +15,41 @@ Voici les liens vers la documentation du projet :
 
 ---
 
+## 🛠️ Installation initiale
+
+Si vous clonez ce projet pour la première fois, le dossier `venv` et le fichier `.env` ne sont pas inclus (sécurité Git). Voici comment configurer l'environnement :
+
+1. **Cloner le dépôt et se déplacer dans le dossier source :**
+```bash
+   git clone [https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git](https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git)
+   cd veille-techno-1SH/src
+```
+
+2. **Créer et activer un nouvel environnement virtuel :**
+```bash
+# Création
+   python -m venv venv
+   
+   # Activation (Windows)
+   venv\Scripts\activate
+   # Activation (Mac/Linux)
+   source venv/bin/activate
+```
+
+3. Installer les dépendances requises :
+```bash
+pip install -r requirements.txt
+```
+
+4. Configurer la clé API :
+* Créez un fichier nommé .env dans le dossier src/.
+* Ajoutez-y votre clé Google Gemini Pro :
+```text
+GEMINI_API_KEY=votre_cle_api_ici
+```
+
+Une fois cette configuration initiale terminée, vous pouvez utiliser les commandes de la section **Démarrage rapide** ci-dessous pour lancer l'API.
+
 ## 🚀 Démarrage rapide (Serveur local)
 
 Voici les commandes pour lancer l'API TicketFlow en environnement de développement local :
