@@ -21,8 +21,8 @@ Si vous clonez ce projet pour la première fois, le dossier `venv` et le fichier
 
 1. **Cloner le dépôt et se déplacer dans le dossier source :**
 ```bash
-   git clone [https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git](https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git)
-   cd veille-techno-1SH/src
+git clone [https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git](https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git)
+cd veille-techno-1SH/src
 ```
 
 2. **Créer et activer un nouvel environnement virtuel :**
