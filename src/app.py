@@ -55,7 +55,7 @@ def status():
     rag_status = "Actif" if rag_engine is not None else "Inactif / Erreur d'initialisation"
     return jsonify({
         "status": "API TicketFlow fonctionnelle", 
-        "ia": "Gemini 2.0 Flash prêt",
+        "ia": "Gemini 2.5 Flash prêt",
         "rag": rag_status
     })
 
@@ -86,7 +86,7 @@ def triage():
     # 3. Appel à l'IA avec Structured Output
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
