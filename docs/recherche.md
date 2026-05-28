@@ -19,7 +19,7 @@ Ce document détaille les recherches technologiques et théoriques effectuées p
 *   **Fonctionnalités retenues :**
     *   **Client unifié :** Utilisation de `genai.Client(api_key=...)`. Le SDK supporte également Vertex AI pour des besoins "Enterprise" (sécurité accrue).
     *   **Contrôle du format de sortie (Structured Output) :** Possibilité de forcer le modèle à répondre en JSON pur via le paramètre `response_mime_type: 'application/json'`, ce qui élimine le besoin de parseurs complexes.
-    *   **Modèle Gemini 2.0 Flash :** Choisi pour son excellent rapport vitesse/coût, idéal pour une application de triage en temps réel.
+    *   **Modèle Gemini 2.5 Flash :** Choisi pour son excellent rapport vitesse/coût, idéal pour une application de triage en temps réel.
     *   **Function Calling :** Potentiel futur pour permettre à l'IA d'interroger des bases de données de noms d'utilisateurs ou de statuts de serveurs avant de décider de la priorité.
 
 ---
