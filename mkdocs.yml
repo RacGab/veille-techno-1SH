@@ -1,0 +1,29 @@
+site_name: TicketFlow - Veille Technologique
+site_description: Documentation de recherche pour le projet TicketFlow
+site_author: Gabriel Racine
+
+theme:
+  name: material
+  language: fr
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+nav:
+  - Accueil: index.md
+  - Recherche: recherche.md
+  - Guide Technique: basics.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - tables

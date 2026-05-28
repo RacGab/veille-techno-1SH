@@ -10,7 +10,7 @@ Ce dépôt fait office de base de connaissances et de code source pour le dével
 
 Voici les liens vers la documentation du projet :
 
-* 🔗 **[Suivi 01 : Document des liens et cahier de recherche](../travaux/suivi_01_liens.md)**
+* 🔗 **[Cahier de recherche (Suivi 01)](recherche.md)**
 * 🧠 **[Carte mentale de l'architecture du projet](../assets/mindmap.pdf)** *(À adapter selon le nom et l'emplacement exact du fichier)*
 
 ---
@@ -19,10 +19,10 @@ Voici les liens vers la documentation du projet :
 
 Si vous clonez ce projet pour la première fois, le dossier `venv` et le fichier `.env` ne sont pas inclus (sécurité Git). Voici comment configurer l'environnement :
 
-1. **Cloner le dépôt et se déplacer dans le dossier source :**
+1. **Cloner le dépôt :**
 ```bash
-git clone [https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git](https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git)
-cd veille-techno-1SH/src
+git clone https://github.com/VOTRE_UTILISATEUR/veille-techno-1SH.git
+cd veille-techno-1SH
 ```
 
 2. **Créer et activer un nouvel environnement virtuel :**
@@ -36,21 +36,33 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-3. Installer les dépendances requises :
+3. **Installer les dépendances requises :**
 ```bash
-pip install -r requirements.txt
+pip install -r src/requirements.txt
 ```
 
-4. Configurer la clé API :
-* Créez un fichier nommé .env dans le dossier src/.
+4. **Configurer la clé API :**
+* Créez un fichier nommé `.env` dans le dossier `src/`.
 * Ajoutez-y votre clé Google Gemini Pro :
 ```text
 GEMINI_API_KEY=votre_cle_api_ici
 ```
 
-Une fois cette configuration initiale terminée, vous pouvez utiliser les commandes de la section **Démarrage rapide** ci-dessous pour lancer l'API.
+---
 
-## 🚀 Démarrage rapide (Serveur local)
+## 📖 Utilisation de la documentation (MkDocs)
+
+Pour visualiser cette documentation sous forme de site web local :
+
+```bash
+# Lancer le serveur de documentation
+mkdocs serve
+```
+La documentation sera accessible sur `http://127.0.0.1:8000`.
+
+---
+
+## 🚀 Démarrage rapide (Serveur API local)
 
 Voici les commandes pour lancer l'API TicketFlow en environnement de développement local :
 
