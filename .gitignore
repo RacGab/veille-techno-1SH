@@ -3,3 +3,4 @@
 __pycache__/
 /src/instance/
 *.db
+/src/data/*.embeddings.json

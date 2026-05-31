@@ -1,22 +1,62 @@
 [
   {
-    "titre": "Problème d'accès et mots de passe",
-    "contenu": "Pour tout compte verrouillé ou mot de passe oublié, vérifier l'identité de l'utilisateur. Si c'est Octopus, déverrouiller via la console admin. Priorité normale sauf si c'est un cadre (VIP).",
-    "categorie": "Accès"
+    "titre": "Compte verrouillé Octopus ou Active Directory",
+    "categorie": "Accès",
+    "priorite": "Moyen",
+    "contenu": "Symptômes : utilisateur incapable de se connecter à Octopus, au poste Windows ou aux applications internes avec un message de compte verrouillé ou mot de passe expiré. Procédure : vérifier l'identité de l'utilisateur, confirmer son matricule, vérifier l'état du compte dans Active Directory ou la console Octopus, déverrouiller le compte si aucune activité suspecte n'est détectée, puis demander à l'utilisateur de réessayer. Si plusieurs verrouillages surviennent en peu de temps, vérifier les appareils mobiles, sessions RDP, VPN ou services utilisant un ancien mot de passe. Catégorie recommandée : Accès. Priorité : Moyen, sauf VIP ou service critique."
   },
   {
-    "titre": "Panne de réseau local (Wi-Fi/Ethernet)",
-    "contenu": "Si plusieurs utilisateurs sont impactés, vérifier le commutateur ou la borne Wi-Fi. Si le routeur clignote rouge, c'est un incident critique impactant la continuité des affaires.",
-    "categorie": "Réseau"
+    "titre": "Réinitialisation de mot de passe et MFA",
+    "categorie": "Accès",
+    "priorite": "Moyen",
+    "contenu": "Symptômes : mot de passe oublié, échec MFA, changement de téléphone, impossibilité d'approuver une connexion Microsoft Authenticator. Procédure : valider l'identité de l'utilisateur, confirmer les coordonnées de récupération, réinitialiser le mot de passe temporaire selon la politique interne, forcer le changement au prochain login, puis réenregistrer le MFA si nécessaire. Si l'utilisateur est en déplacement ou bloqué hors réseau, accompagner via VPN ou portail cloud. Catégorie recommandée : Accès. Priorité : Moyen, élevée si l'utilisateur ne peut plus travailler."
   },
   {
-    "titre": "Bogue logiciel métier",
-    "contenu": "Pour les erreurs 500 ou crashs d'applications, demander une capture d'écran. Vérifier si une mise à jour est en attente. Priorité moyenne.",
-    "categorie": "Logiciel"
+    "titre": "VPN instable ou impossible à connecter",
+    "categorie": "Réseau",
+    "priorite": "Élevé",
+    "contenu": "Symptômes : VPN qui déconnecte fréquemment, erreur de tunnel, authentification réussie mais aucune ressource interne accessible, latence élevée en télétravail. Procédure : vérifier la connexion Internet locale, redémarrer le client VPN, confirmer la validité du compte et du MFA, tester la résolution DNS interne, vérifier si d'autres utilisateurs sont affectés et consulter l'état du concentrateur VPN. Si plusieurs employés sont touchés, escalader réseau immédiatement. Catégorie recommandée : Réseau. Priorité : Élevé, critique si un département complet est bloqué."
   },
   {
-    "titre": "Défectuosité matérielle (Souris, Clavier, Écran)",
-    "contenu": "Le matériel défectueux doit être remplacé sous 48h. Ce sont des demandes à faible priorité (Low) car elles n'empêchent pas totalement le travail.",
-    "categorie": "Matériel"
+    "titre": "Perte de connectivité réseau locale Wi-Fi ou Ethernet",
+    "categorie": "Réseau",
+    "priorite": "Critique",
+    "contenu": "Symptômes : plusieurs utilisateurs sans réseau, absence d'accès aux applications internes, imprimantes réseau indisponibles, borne Wi-Fi ou commutateur possiblement hors service. Procédure : déterminer le périmètre de l'incident, tester un poste filaire et un poste Wi-Fi, vérifier les voyants du commutateur, la borne et le routeur, consulter les alertes de supervision, puis escalader à l'équipe infrastructure si plusieurs utilisateurs ou un site complet sont affectés. Catégorie recommandée : Réseau. Priorité : Critique pour une panne multi-utilisateurs ou site complet."
+  },
+  {
+    "titre": "Erreur 500 sur application web métier",
+    "categorie": "Logiciel",
+    "priorite": "Élevé",
+    "contenu": "Symptômes : erreur HTTP 500, page blanche, transaction impossible, application métier indisponible, message serveur inattendu. Procédure : demander l'URL, l'heure exacte, le navigateur utilisé et une capture d'écran, reproduire le problème avec un compte test, vérifier si plusieurs utilisateurs sont touchés, consulter les journaux applicatifs ou l'état du service. Redémarrer uniquement si la procédure interne l'autorise. Catégorie recommandée : Logiciel. Priorité : Élevé, critique si l'application supporte une opération essentielle."
+  },
+  {
+    "titre": "Application locale qui plante ou refuse de démarrer",
+    "categorie": "Logiciel",
+    "priorite": "Moyen",
+    "contenu": "Symptômes : application qui ferme au lancement, message DLL manquante, erreur de version, gel après une mise à jour Windows. Procédure : redémarrer le poste, vérifier les mises à jour en attente, lancer l'application en mode administrateur si autorisé, réinstaller ou réparer l'application selon la procédure, vérifier les journaux Windows et confirmer si le problème touche un seul poste ou plusieurs. Catégorie recommandée : Logiciel. Priorité : Moyen, élevée si l'application bloque une fonction opérationnelle urgente."
+  },
+  {
+    "titre": "Écran bleu Windows ou redémarrages imprévus",
+    "categorie": "Matériel",
+    "priorite": "Élevé",
+    "contenu": "Symptômes : écran bleu BSOD, redémarrages aléatoires, code d'arrêt Windows, poste instable après branchement d'un périphérique ou mise à jour pilote. Procédure : noter le code d'erreur, vérifier l'historique de fiabilité Windows, débrancher les périphériques récents, vérifier l'espace disque, lancer les diagnostics mémoire et disque, mettre à jour ou restaurer les pilotes. Si le problème se répète, prévoir remplacement ou diagnostic matériel avancé. Catégorie recommandée : Matériel. Priorité : Élevé si le poste est inutilisable."
+  },
+  {
+    "titre": "Périphérique défectueux écran clavier souris station d'accueil",
+    "categorie": "Matériel",
+    "priorite": "Faible",
+    "contenu": "Symptômes : écran externe noir, clavier ou souris non détecté, station d'accueil USB-C instable, câble ou chargeur possiblement défectueux. Procédure : tester un autre port, câble ou périphérique, vérifier l'alimentation, redémarrer la station d'accueil, mettre à jour le firmware si applicable, remplacer le périphérique si le défaut est confirmé. Catégorie recommandée : Matériel. Priorité : Faible, moyenne si aucun contournement n'est possible."
+  },
+  {
+    "titre": "Enrôlement mobile Intune ou appareil Samsung",
+    "categorie": "Accès",
+    "priorite": "Moyen",
+    "contenu": "Symptômes : téléphone Samsung impossible à enrôler dans Intune, profil professionnel absent, erreur Company Portal, politiques de conformité non appliquées, accès courriel mobile refusé. Procédure : vérifier la licence utilisateur, retirer les anciens enregistrements de l'appareil, confirmer la version Android, vider le cache Company Portal, relancer l'enrôlement, puis valider la conformité et l'accès aux ressources. Catégorie recommandée : Accès. Priorité : Moyen, élevée si l'utilisateur dépend du mobile pour les opérations terrain."
+  },
+  {
+    "titre": "Imprimante réseau indisponible ou file bloquée",
+    "categorie": "Matériel",
+    "priorite": "Moyen",
+    "contenu": "Symptômes : imprimante réseau hors ligne, travaux bloqués dans la file, bourrage papier, impression impossible depuis plusieurs postes. Procédure : vérifier l'état physique de l'imprimante, papier, toner et bourrage, confirmer l'adresse IP, tester un ping, redémarrer le spooler d'impression si nécessaire, supprimer et recréer la file d'impression. Si plusieurs utilisateurs sont affectés, vérifier le serveur d'impression. Catégorie recommandée : Matériel. Priorité : Moyen, élevée pour un service administratif dépendant de l'impression."
   }
 ]

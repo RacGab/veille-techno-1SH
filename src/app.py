@@ -96,6 +96,7 @@ def triage():
                 ticket_id=ticket_id,
                 contexte_retrouve=procedure.get('contenu') or str(procedure),
                 source=procedure.get('titre'),
+                score_similarite=procedure.get('score_similarite'),
                 categorie_reference=procedure.get('categorie'),
                 priorite_reference=procedure.get('priorite'),
             )
