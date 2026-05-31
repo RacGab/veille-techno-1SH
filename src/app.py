@@ -77,9 +77,33 @@ def triage():
         return jsonify({"erreur": "Requête invalide. Veuillez fournir une 'description' en JSON."}), 400
         
     description = data['description']
+
+    try:
+        ticket = Ticket(description=description, statut='Nouveau')
+        db.session.add(ticket)
+        db.session.commit()
+        ticket_id = ticket.id
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"erreur": f"Échec de la création du ticket en base de données : {str(e)}"}), 500
     
     # 1. Étape RAG : Recherche de procédures pertinentes
     procedure = rag_engine.find_relevant_procedure(description) if rag_engine else None
+
+    if procedure:
+        try:
+            rag_entry = RagHistory(
+                ticket_id=ticket_id,
+                contexte_retrouve=procedure.get('contenu') or str(procedure),
+                source=procedure.get('titre'),
+                categorie_reference=procedure.get('categorie'),
+                priorite_reference=procedure.get('priorite'),
+            )
+            db.session.add(rag_entry)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"erreur": f"Échec de la sauvegarde du contexte RAG : {str(e)}"}), 500
     
     # 2. Construction du prompt augmenté
     prompt = "Tu es un agent de triage ITSM expert. Ton but est de classifier les incidents informatiques.\n"
@@ -107,9 +131,23 @@ def triage():
         
         # Le SDK retourne une chaîne JSON validée par Pydantic
         result_json = json.loads(response.text)
+
+        try:
+            triage_result = TriageResult(
+                ticket_id=ticket_id,
+                categorie=result_json['categorie'],
+                priorite=result_json['priorite'],
+                justification=result_json['justification'],
+            )
+            db.session.add(triage_result)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"erreur": f"Échec de la sauvegarde du résultat IA : {str(e)}"}), 500
         
         # Ajout d'une métadonnée pour la transparence (savoir si le RAG a aidé)
         result_json['_meta'] = {
+            "ticket_id": ticket_id,
             "rag_utilise": procedure['titre'] if procedure else False
         }
         
