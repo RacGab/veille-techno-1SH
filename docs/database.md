@@ -50,7 +50,7 @@ Champs principaux :
 | `ticket_id` | Clé étrangère vers le billet associé |
 | `contexte_retrouve` | Contenu de la procédure ou connaissance retrouvée |
 | `source` | Titre ou source de la procédure |
-| `score_similarite` | Score optionnel de correspondance |
+| `score_similarite` | Float : score de pertinence cosinus entre la description du billet et la procédure trouvée |
 | `categorie_reference` | Catégorie associée au contexte retrouvé |
 | `priorite_reference` | Priorité associée au contexte retrouvé |
 | `date_creation` | Date de création de l'entrée |

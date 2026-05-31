@@ -1,57 +1,143 @@
-# 🧠 Architecture Avancée d'un Système RAG Robuste
+# Architecture RAG
 
-Pour passer d'un MVP ("Naive RAG") à un système de triage ITSM fiable en production, il est nécessaire d'implémenter des mécanismes d'auto-correction et d'utiliser une infrastructure de données spécialisée. 
+Le moteur RAG de TicketFlow sert à enrichir la demande envoyée à Gemini avec une procédure interne pertinente.
+Son objectif est de donner au modèle un contexte opérationnel réel avant la classification du billet.
 
-Ce document synthétise les meilleures pratiques de l'industrie pour la conception d'un tel système.
-
----
-
-## 1. La Fondation : Base de Données Vectorielle et Indexation
-
-Le succès d'un RAG repose à 80% sur la qualité de la récupération des données (Retrieval). Si l'IA reçoit de mauvais documents, elle hallucine ou se trompe.
-
-### Bases de données vectorielles (Vector DBs)
-Pour un environnement de production, une simple liste Python ou un fichier JSON en mémoire n'est pas viable. Il faut une base de données optimisée pour la recherche par similarité cosinus ou euclidienne.
-*   **Options populaires :** **Pinecone** (Cloud managé, facile), **Qdrant** (Open source, très rapide en Rust), **ChromaDB** (Excellent pour le développement local et Python), ou **Weaviate**.
-*   **L'approche hybride :** Les meilleurs RAG utilisent une recherche hybride. Ils combinent la recherche sémantique (Dense Retrieval - sens du texte) avec la recherche par mots-clés (Sparse Retrieval - BM25). Cela permet de trouver un ticket "d'écran noir" (sémantique) mais de ne pas rater le ticket mentionnant le code d'erreur exact "ERR-9001" (mot-clé).
-
-### Algorithmes de Chunking (Découpage)
-Il ne faut pas injecter des documents entiers dans le vecteur. Le texte doit être découpé intelligemment.
-*   **Semantic Chunking :** Au lieu de couper arbitrairement tous les 500 mots, on découpe par paragraphes ou sections logiques pour ne pas briser le contexte.
-*   **Enrichissement par Métadonnées :** Chaque chunk (morceau de texte) doit être accompagné de métadonnées (ex: `{"source": "SOP_Reseau", "date": "2025", "categorie": "Critique"}`). Cela permet de filtrer la recherche vectorielle *avant* de calculer la similarité, augmentant drastiquement la précision et la vitesse.
+Depuis le Suivi 2, le moteur ne se limite plus à lire un fichier JSON en mémoire.
+Il utilise maintenant des embeddings, un seuil de similarité, un cache local et une stratégie de retry pour rendre la récupération plus robuste.
 
 ---
 
-## 2. Le RAG Auto-Correcteur : CRAG et Self-RAG
+## Rôle de `TicketRAG`
 
-Un "Naive RAG" récupère des documents et force l'IA à répondre avec, même s'ils sont hors sujet. Les architectures modernes sont "Agentiques" : elles évaluent et se corrigent.
+La classe `TicketRAG`, définie dans `src/rag_utils.py`, reçoit deux éléments principaux :
 
-### A. CRAG (Corrective Retrieval Augmented Generation)
-Le CRAG ajoute un "évaluateur" entre la recherche et la génération.
-1.  **Recherche :** Le système cherche dans la Vector DB.
-2.  **Évaluation (Retrieval Evaluator) :** Un modèle léger note les documents trouvés comme *Corrects*, *Incorrects* ou *Ambigus*.
-3.  **Action :**
-    *   Si *Correct* : L'IA génère la réponse.
-    *   Si *Incorrect* : Le système déclenche un plan de secours (fallback), comme faire une recherche Web ou chercher dans une base d'archives lointaine, puis tente de répondre.
-    *   Si *Ambigu* : Il combine les connaissances internes avec des recherches externes.
+- un client Gemini initialisé avec `google-genai` ;
+- le chemin vers `src/data/knowledge_base.json`.
 
-### B. Self-RAG (Self-Reflective RAG)
-Le Self-RAG est une approche où l'IA génère des "jetons de réflexion" (Reflection Tokens) pendant son processus pour s'autocritiquer.
-1.  **Critique de la pertinence (`IsSup`) :** L'IA vérifie si les documents qu'on lui fournit sont vraiment pertinents par rapport au ticket soumis.
-2.  **Critique de la génération (`IsUseful`) :** Avant de renvoyer le résultat final à l'utilisateur, l'IA vérifie si sa propre réponse résout réellement le ticket de départ sans halluciner.
-3.  **Boucle de correction :** Si l'IA réalise que sa réponse n'est pas soutenue par les documents, elle peut demander au système de relancer une nouvelle recherche vectorielle reformulée.
+Au démarrage, elle charge la base de connaissances, prépare les embeddings des procédures et les garde en mémoire pour les recherches suivantes.
+
+Lorsqu'un billet est soumis à `POST /api/v1/triage`, la méthode `find_relevant_procedure()` :
+
+1. génère un embedding pour la description du billet ;
+2. compare cet embedding avec les procédures connues ;
+3. calcule une similarité cosinus ;
+4. retourne uniquement la procédure la plus pertinente si elle dépasse le seuil configuré.
 
 ---
 
-## 3. Évaluation : La Triade du RAG
+## Base de connaissances
 
-Pour s'assurer que le système TicketFlow s'améliore et reste fiable, il faut monitorer trois métriques clés (souvent via des frameworks comme **RAGAS** ou **TruLens**) :
+La base de connaissances est stockée dans `src/data/knowledge_base.json`.
+Chaque entrée représente une procédure de soutien TI et contient notamment :
 
-1.  **Faithfulness (Fidélité) :** La réponse est-elle issue *uniquement* de la base de connaissances fournie ? (Le taux d'hallucination doit être à 0%).
-2.  **Answer Relevance (Pertinence) :** La catégorie et la priorité générées ont-elles un sens par rapport à la description du ticket ?
-3.  **Context Precision (Précision du contexte) :** Les procédures remontées par la Vector DB étaient-elles les bonnes ?
+| Champ | Rôle |
+| :--- | :--- |
+| `titre` | Nom lisible de la procédure |
+| `categorie` | Catégorie ITSM associée : `Accès`, `Matériel`, `Logiciel`, `Réseau` |
+| `priorite` | Priorité recommandée selon le contexte |
+| `contenu` | Procédure détaillée et symptômes associés |
+
+Le texte vectorisé ne se limite pas au champ `contenu`.
+Le moteur construit plutôt un texte enrichi avec le titre, la catégorie, la priorité et la procédure.
+Cette approche améliore la précision du matching, car les métadonnées importantes participent aussi au calcul de similarité.
 
 ---
 
-### Résumé pour l'implémentation de TicketFlow
-Pour notre MVP, nous commencerons avec un **Naive RAG** (recherche sémantique simple en mémoire via Numpy) pour prouver le concept d'interaction avec Gemini. Cependant, l'architecture finale documentée dans notre projet devra viser une structure **CRAG** avec **ChromaDB** pour gérer les milliers de tickets historiques d'un vrai centre de services sans perdre en précision.
+## Cache local des embeddings
+
+Calculer les embeddings de toute la base de connaissances à chaque redémarrage est coûteux et ralentit le serveur.
+TicketFlow génère donc un fichier de cache local à côté de la base de connaissances :
+
+```text
+src/data/knowledge_base.json.embeddings.json
+```
+
+Le cache associe chaque procédure à une clé stable calculée avec SHA-256.
+Cette clé dépend du titre, de la catégorie, de la priorité et du contenu.
+
+Conséquences :
+
+- si une procédure ne change pas, son embedding est réutilisé ;
+- si une procédure est modifiée, sa clé change et son embedding est recalculé ;
+- le serveur évite de rappeler inutilement l'API Gemini au démarrage.
+
+Ce fichier est généré automatiquement et ne doit pas être versionné.
+Il est donc ignoré dans `.gitignore` avec :
+
+```gitignore
+/src/data/*.embeddings.json
+```
+
+---
+
+## Seuil de similarité
+
+Le moteur utilise un seuil de similarité par défaut :
+
+```python
+DEFAULT_SIMILARITY_THRESHOLD = 0.68
+```
+
+Ce seuil empêche le RAG de retourner une procédure simplement parce qu'elle est la moins mauvaise candidate.
+Si le meilleur score est inférieur à `0.68`, aucune procédure n'est transmise à Gemini.
+
+Cette décision réduit le risque d'hallucination guidée par un mauvais contexte.
+Dans ce cas, le prompt indique plutôt qu'aucune procédure interne spécifique n'a été trouvée, et Gemini doit appliquer un jugement ITSM général.
+
+Le score retenu est retourné dans la procédure sous la clé `score_similarite`.
+Il est ensuite sauvegardé dans la table `RagHistory`, ce qui permet d'auditer la qualité du contexte récupéré.
+
+---
+
+## Similarité cosinus
+
+La similarité cosinus mesure l'angle entre deux vecteurs :
+
+- l'embedding de la description du billet ;
+- l'embedding d'une procédure de la base de connaissances.
+
+Un score plus proche de `1.0` indique une forte proximité sémantique.
+Un score plus faible indique que le lien entre le billet et la procédure est moins fiable.
+
+La fonction `cosine_similarity()` protège aussi contre les vecteurs nuls afin d'éviter une division par zéro.
+Dans ce cas, elle retourne `0.0`.
+
+---
+
+## Exponential Backoff
+
+Les appels à l'API Gemini peuvent échouer temporairement, surtout dans deux cas :
+
+- `429 RESOURCE_EXHAUSTED` : quota ou limite de débit atteint ;
+- `503 UNAVAILABLE` : service temporairement indisponible.
+
+La fonction `get_embedding()` applique donc une stratégie de retry avec délai exponentiel.
+Lorsqu'une erreur temporaire est détectée, le moteur attend avant de réessayer.
+
+Le délai augmente à chaque tentative :
+
+```text
+1 seconde environ, puis 2, puis 4, puis 8
+```
+
+Un léger délai aléatoire est ajouté pour éviter que plusieurs requêtes réessaient exactement au même moment.
+Après le nombre maximal de tentatives, l'erreur est relancée afin que l'application puisse la gérer proprement.
+
+---
+
+## Flux complet
+
+Le fonctionnement actuel du RAG peut être résumé ainsi :
+
+1. Chargement de `knowledge_base.json`.
+2. Chargement du cache `.embeddings.json`, s'il existe.
+3. Génération seulement des embeddings manquants.
+4. Sauvegarde du cache mis à jour.
+5. Réception d'une description de billet.
+6. Génération de l'embedding du billet.
+7. Comparaison avec les procédures par similarité cosinus.
+8. Retour de la meilleure procédure seulement si le score est supérieur ou égal à `0.68`.
+9. Sauvegarde du contexte RAG et du score dans la base SQLite.
+
+Cette architecture reste simple pour un projet local, mais elle prépare la transition future vers une base vectorielle spécialisée si le volume de procédures ou de billets historiques augmente.
