@@ -1,6 +1,6 @@
 flask
 google-genai
 python-dotenv
-mkdocs
-mkdocs-material
+Flask-SQLAlchemy
+Flask-Migrate
 numpy

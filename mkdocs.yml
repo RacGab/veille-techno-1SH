@@ -19,6 +19,7 @@ nav:
   - Accueil: index.md
   - Recherche: recherche.md
   - Architecture RAG: architecture_rag.md
+  - Architecture des données: database.md
   - Guide Technique: basics.md
 
 markdown_extensions:
