@@ -6,13 +6,23 @@ from google.genai import types
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
+from extensions import db, migrate
+
 # Import du moteur RAG
 from rag_utils import TicketRAG
+# Import des modèles pour que Flask-Migrate détecte les tables
+from models import RagHistory, Ticket, TriageResult
 
 # Charger les variables du fichier .env
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ticketflow.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+migrate.init_app(app, db)
+
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # Schéma de sortie structurée forcé (Pydantic)

@@ -1,3 +1,5 @@
 /src/venv/
 /src/.env
 __pycache__/
+/src/instance/
+*.db
