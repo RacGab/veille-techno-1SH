@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, redirect, request, url_for
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -12,6 +12,7 @@ from extensions import db, migrate
 from rag_utils import TicketRAG
 # Import des modèles pour que Flask-Migrate détecte les tables
 from models import RagHistory, Ticket, TriageResult
+from views import frontend
 
 # Charger les variables du fichier .env
 load_dotenv()
@@ -22,6 +23,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate.init_app(app, db)
+app.register_blueprint(frontend)
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
@@ -47,18 +49,7 @@ def init_rag():
 
 @app.route('/', methods=['GET'])
 def index():
-    return '''
-    <html>
-        <head><title>TicketFlow API</title></head>
-        <body style="font-family: sans-serif; padding: 2rem;">
-            <h1>TicketFlow API</h1>
-            <p>Le serveur de développement est actif.</p>
-            <ul>
-                <li><a href="/api/v1/status">Vérifier le statut de l'API (/api/v1/status)</a></li>
-            </ul>
-        </body>
-    </html>
-    '''
+    return redirect(url_for("frontend.dashboard"))
 
 @app.route('/api/v1/status', methods=['GET'])
 def status():
