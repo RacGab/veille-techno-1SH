@@ -26,6 +26,9 @@
                             placeholder="Ex. Plusieurs utilisateurs ne peuvent plus se connecter au VPN depuis ce matin."
                             required
                         ></textarea>
+                        <div class="form-text">
+                            Décrivez les symptômes, le matériel affecté et les actions déjà tentées.
+                        </div>
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
@@ -49,10 +52,11 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
+                    <table class="table table-sm table-striped table-hover align-middle">
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
+                                <th scope="col" class="text-nowrap">ID</th>
+                                <th scope="col" class="text-nowrap">Date</th>
                                 <th scope="col">Description</th>
                                 <th scope="col">Catégorie</th>
                                 <th scope="col">Priorité</th>
@@ -66,11 +70,27 @@
                                 {% set rag_items = ticket.rag_history %}
                                 {% set rag = rag_items[0] if rag_items else none %}
                                 <tr>
-                                    <td class="fw-semibold">#{{ ticket.id }}</td>
-                                    <td style="min-width: 260px;">{{ ticket.description }}</td>
+                                    <td class="fw-semibold text-nowrap w-auto">#{{ ticket.id }}</td>
+                                    <td
+                                        class="local-date text-muted small text-nowrap w-auto"
+                                        {% if ticket.date_creation %}
+                                            data-utc="{{ ticket.date_creation.isoformat() }}Z"
+                                        {% endif %}
+                                    >
+                                        {% if ticket.date_creation %}
+                                            <span class="spinner-grow spinner-grow-sm text-secondary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td style="min-width: 280px;">{{ ticket.description }}</td>
                                     <td>
                                         {% if triage %}
-                                            {{ triage.categorie }}
+                                            <span class="badge border text-dark bg-light">
+                                                {{ triage.categorie }}
+                                            </span>
                                         {% else %}
                                             <span class="text-muted">En attente</span>
                                         {% endif %}
@@ -102,10 +122,10 @@
                                     <td style="min-width: 240px;">
                                         {% if rag %}
                                             <div class="fw-semibold">{{ rag.source }}</div>
-                                            {% if rag.score_similarite is not none %}
-                                                <small class="text-muted">
+                                            {% if rag.score_similarite %}
+                                                <div class="text-muted small">
                                                     Score : {{ (rag.score_similarite * 100)|round(1) }}%
-                                                </small>
+                                                </div>
                                             {% endif %}
                                         {% else %}
                                             <span class="text-muted">Aucune procédure utilisée</span>
@@ -114,7 +134,7 @@
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         Aucun billet enregistré pour le moment.
                                     </td>
                                 </tr>
@@ -132,6 +152,24 @@ const triageForm = document.getElementById("triageForm");
 const ticketDescription = document.getElementById("ticketDescription");
 const submitButton = document.getElementById("submitButton");
 const loadingSpinner = document.getElementById("loadingSpinner");
+
+document.querySelectorAll(".local-date").forEach((element) => {
+    const utcValue = element.dataset.utc;
+
+    if (!utcValue) {
+        return;
+    }
+
+    const date = new Date(utcValue);
+
+    element.textContent = date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+});
 
 triageForm.addEventListener("submit", async (event) => {
     event.preventDefault();
