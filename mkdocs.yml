@@ -17,6 +17,7 @@ theme:
 
 nav:
   - Accueil: index.md
+  - Structure du Projet: structure.md
   - Recherche: recherche.md
   - Architecture RAG: architecture_rag.md
   - Architecture des données: database.md
