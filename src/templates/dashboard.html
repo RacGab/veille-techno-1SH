@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TicketFlow ITSM{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0">Nouveau billet</h1>
+            </div>
+            <div class="card-body">
+                {% if erreur %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ erreur }}
+                    </div>
+                {% endif %}
+
+                <form id="triageForm">
+                    <div class="mb-3">
+                        <label for="ticketDescription" class="form-label">Description du billet</label>
+                        <textarea
+                            id="ticketDescription"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Ex. Plusieurs utilisateurs ne peuvent plus se connecter au VPN depuis ce matin."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <button id="submitButton" type="submit" class="btn btn-primary">
+                            Soumettre pour Triage IA
+                        </button>
+
+                        <div id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Billets triés</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Catégorie</th>
+                                <th scope="col">Priorité</th>
+                                <th scope="col">Analyse IA</th>
+                                <th scope="col">Procédure RAG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                                {% set triage = ticket.triage_result %}
+                                {% set rag_items = ticket.rag_history %}
+                                {% set rag = rag_items[0] if rag_items else none %}
+                                <tr>
+                                    <td class="fw-semibold">#{{ ticket.id }}</td>
+                                    <td style="min-width: 260px;">{{ ticket.description }}</td>
+                                    <td>
+                                        {% if triage %}
+                                            {{ triage.categorie }}
+                                        {% else %}
+                                            <span class="text-muted">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if triage %}
+                                            {% if triage.priorite == "Critique" %}
+                                                <span class="badge bg-danger">{{ triage.priorite }}</span>
+                                            {% elif triage.priorite == "Élevé" %}
+                                                <span class="badge bg-warning text-dark">{{ triage.priorite }}</span>
+                                            {% elif triage.priorite == "Moyen" %}
+                                                <span class="badge bg-info text-dark">{{ triage.priorite }}</span>
+                                            {% elif triage.priorite == "Faible" %}
+                                                <span class="badge bg-secondary">{{ triage.priorite }}</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">{{ triage.priorite }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">Non classé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="min-width: 320px;">
+                                        {% if triage %}
+                                            {{ triage.justification }}
+                                        {% else %}
+                                            <span class="text-muted">Aucune analyse disponible</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="min-width: 240px;">
+                                        {% if rag %}
+                                            <div class="fw-semibold">{{ rag.source }}</div>
+                                            {% if rag.score_similarite is not none %}
+                                                <small class="text-muted">
+                                                    Score : {{ (rag.score_similarite * 100)|round(1) }}%
+                                                </small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Aucune procédure utilisée</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        Aucun billet enregistré pour le moment.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const triageForm = document.getElementById("triageForm");
+const ticketDescription = document.getElementById("ticketDescription");
+const submitButton = document.getElementById("submitButton");
+const loadingSpinner = document.getElementById("loadingSpinner");
+
+triageForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const description = ticketDescription.value.trim();
+
+    if (!description) {
+        alert("Veuillez saisir une description de billet.");
+        return;
+    }
+
+    submitButton.disabled = true;
+    loadingSpinner.classList.remove("d-none");
+
+    try {
+        const response = await fetch("/api/v1/triage", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ description })
+        });
+
+        if (response.status === 201) {
+            window.location.reload();
+            return;
+        }
+
+        let message = "Une erreur est survenue pendant le triage.";
+
+        try {
+            const payload = await response.json();
+            message = payload.erreur || message;
+        } catch (error) {
+            message = `${message} Code HTTP : ${response.status}`;
+        }
+
+        alert(message);
+    } catch (error) {
+        alert(`Impossible de joindre l'API TicketFlow : ${error.message}`);
+    } finally {
+        submitButton.disabled = false;
+        loadingSpinner.classList.add("d-none");
+    }
+});
+</script>
+{% endblock %}
