@@ -41,11 +41,11 @@ source venv/bin/activate
 
 3. **Installer les dépendances requises :**
 ```bash
-pip install -r src/requirements.txt
+pip install -r requirements.txt
 ```
 
 4. **Configurer la clé API :**
-* Créez un fichier nommé `.env` dans le dossier `src/`.
+* Créez un fichier nommé `.env` à la racine du projet.
 * Ajoutez-y votre clé Google Gemini Pro :
 ```text
 GEMINI_API_KEY=votre_cle_api_ici
@@ -73,13 +73,12 @@ Voici les commandes pour lancer l'API TicketFlow en environnement de développem
 ```bash
 # 1. Activer l'environnement virtuel
 # Sur Windows :
-src\venv\Scripts\activate
+venv\Scripts\activate
 # Sur Mac/Linux :
-source src/venv/bin/activate
+source venv/bin/activate
 
 # 2. Lancer l'API
-cd src
-python app.py
+python run.py
 ```
 
 Le serveur sera accessible à l'adresse `http://127.0.0.1:5000`.

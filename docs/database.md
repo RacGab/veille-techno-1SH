@@ -102,15 +102,13 @@ En cas d'échec lors d'une transaction, `db.session.rollback()` est appelé pour
 Pour initialiser la base de données sur un poste de développement, exécuter les commandes suivantes depuis la racine du projet :
 
 ```powershell
-cd src
-$env:FLASK_APP = "app.py"
-.\venv\Scripts\flask.exe db init
-.\venv\Scripts\flask.exe db migrate -m "create ticketflow core tables"
-.\venv\Scripts\flask.exe db upgrade
-cd ..
+$env:FLASK_APP = "run.py"
+flask db init
+flask db migrate -m "create ticketflow core tables"
+flask db upgrade
 ```
 
-Après ces commandes, Flask-Migrate crée le dossier `migrations/` et SQLite génère la base locale dans `instance/ticketflow.db`.
+Après ces commandes, Flask-Migrate crée le dossier `migrations/` à la racine et SQLite génère la base locale dans `instance/ticketflow.db`.
 
 ---
 
@@ -119,7 +117,7 @@ Après ces commandes, Flask-Migrate crée le dossier `migrations/` et SQLite gé
 Les fichiers suivants ne doivent pas être versionnés :
 
 ```gitignore
-/src/instance/
+/instance/
 *.db
 ```
 
