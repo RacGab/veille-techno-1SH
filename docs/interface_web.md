@@ -49,6 +49,7 @@ Bootstrap 5 est utilisé pour accélérer la mise en forme :
 - tableau responsive avec lignes alternées ;
 - badges de couleur pour les priorités ;
 - spinner de chargement pendant l'analyse IA.
+- interrupteur de sélection du moteur RAG pour comparer Basic et ChromaDB.
 
 ---
 
@@ -85,6 +86,24 @@ Le flux est le suivant :
 
 Cette mécanique réutilise l'API REST existante au lieu de dupliquer la logique de triage côté interface.
 Le dashboard devient donc un client interne de l'API TicketFlow.
+
+---
+
+## Sélection du moteur RAG
+
+Le formulaire contient un interrupteur :
+
+```text
+Activer le moteur vectoriel ChromaDB
+```
+
+Lorsqu'il est désactivé, le dashboard envoie la requête au moteur `TicketRAGBasic`.
+Lorsqu'il est activé, il ajoute le paramètre booléen `use_chroma: true` au JSON transmis à `POST /api/v1/triage`.
+
+Ce choix est fait pour chaque billet soumis.
+Le technicien peut donc comparer les deux moteurs en temps réel, sans redémarrer Flask.
+
+La colonne `Procédure RAG` affiche la source préfixée par le moteur utilisé, par exemple `[Basic]` ou `[Chroma]`.
 
 ---
 

@@ -3,51 +3,172 @@
 Le moteur RAG de TicketFlow sert à enrichir la demande envoyée à Gemini avec une procédure interne pertinente.
 Son objectif est de donner au modèle un contexte opérationnel réel avant la classification du billet.
 
-Depuis le Suivi 2, le moteur ne se limite plus à lire un fichier JSON en mémoire.
-Il utilise maintenant des embeddings, un seuil de similarité, un cache local et une stratégie de retry pour rendre la récupération plus robuste.
+Depuis le Suivi 3, l'application ne dépend plus d'un seul moteur RAG.
+Elle utilise une architecture multi-moteurs basée sur le patron de conception **Stratégie**, avec un moteur léger en mémoire et un moteur vectoriel persistant.
 
 ---
 
-## Rôle de `TicketRAG`
+## Patron Stratégie et Factory
 
-La classe `TicketRAG`, définie dans `src/rag_utils.py`, reçoit deux éléments principaux :
+Le fichier `src/rag_utils.py` expose une fonction de création :
 
-- un client Gemini initialisé avec `google-genai` ;
-- le chemin vers `src/data/knowledge_base.json`.
+```python
+get_rag_engine(client, kb_path, use_chroma=False, threshold=0.68)
+```
 
-Au démarrage, elle charge la base de connaissances, prépare les embeddings des procédures et les garde en mémoire pour les recherches suivantes.
+Cette fonction agit comme une **Factory**.
+Elle masque le détail d'instanciation du moteur RAG et retourne une stratégie compatible avec l'interface attendue par l'application.
 
-Lorsqu'un billet est soumis à `POST /api/v1/triage`, la méthode `find_relevant_procedure()` :
+Les deux moteurs implémentent la même méthode principale :
 
-1. génère un embedding pour la description du billet ;
-2. compare cet embedding avec les procédures connues ;
-3. calcule une similarité cosinus ;
-4. retourne uniquement la procédure la plus pertinente si elle dépasse le seuil configuré.
+```python
+find_relevant_procedure(ticket_description)
+```
+
+Cette méthode retourne soit `None`, soit un dictionnaire contenant la procédure trouvée :
+
+```python
+{
+    "titre": "...",
+    "categorie": "...",
+    "priorite": "...",
+    "contenu": "...",
+    "score_similarite": 0.82
+}
+```
+
+Cette uniformité permet à `src/app.py` de changer de moteur sans modifier la logique de triage, de sauvegarde en base ou de génération du prompt Gemini.
 
 ---
 
-## Base de connaissances
+## Moteur `TicketRAGBasic`
 
-La base de connaissances est stockée dans `src/data/knowledge_base.json`.
-Chaque entrée représente une procédure de soutien TI et contient notamment :
+`TicketRAGBasic` correspond au moteur historique de TicketFlow.
+Il repose sur :
 
-| Champ | Rôle |
+- `src/data/knowledge_base.json` pour les procédures ITSM ;
+- Gemini Embeddings pour vectoriser les procédures et les billets ;
+- NumPy pour calculer la similarité cosinus en mémoire ;
+- un cache local `.embeddings.json` pour éviter de recalculer les vecteurs à chaque redémarrage.
+
+Ce moteur est simple, rapide à comprendre et très léger.
+Il demeure utile comme fallback local, pour les démonstrations rapides, les tests hors architecture vectorielle complète ou les environnements où ChromaDB n'est pas disponible.
+
+---
+
+## Moteur `TicketRAGChroma`
+
+`TicketRAGChroma` ajoute une vraie base de données vectorielle locale avec ChromaDB.
+
+ChromaDB est utilisé pour préparer TicketFlow à un volume plus important de procédures ou d'historiques de billets.
+Contrairement au moteur Basic, les vecteurs ne vivent pas seulement dans une liste Python en mémoire.
+Ils sont persistés sur disque dans :
+
+```text
+src/data/chroma_db/
+```
+
+Ce dossier est ignoré par Git, car il s'agit d'un artefact local généré automatiquement.
+
+Au démarrage, le moteur ChromaDB :
+
+1. ouvre un client persistant avec `chromadb.PersistentClient(...)` ;
+2. crée ou récupère la collection `procedures_itsm` ;
+3. vérifie si la collection est vide ;
+4. si nécessaire, lit `knowledge_base.json` ;
+5. génère les embeddings avec la fonction commune `get_embedding()` ;
+6. insère les documents, métadonnées et embeddings dans ChromaDB.
+
+Les métadonnées conservées dans ChromaDB incluent :
+
+| Métadonnée | Rôle |
 | :--- | :--- |
-| `titre` | Nom lisible de la procédure |
-| `categorie` | Catégorie ITSM associée : `Accès`, `Matériel`, `Logiciel`, `Réseau` |
-| `priorite` | Priorité recommandée selon le contexte |
-| `contenu` | Procédure détaillée et symptômes associés |
+| `titre` | Nom de la procédure |
+| `categorie` | Catégorie ITSM recommandée |
+| `priorite` | Priorité recommandée |
 
-Le texte vectorisé ne se limite pas au champ `contenu`.
-Le moteur construit plutôt un texte enrichi avec le titre, la catégorie, la priorité et la procédure.
-Cette approche améliore la précision du matching, car les métadonnées importantes participent aussi au calcul de similarité.
+Le contenu de la procédure est stocké comme document.
+
+---
+
+## Métrique cosinus
+
+La collection ChromaDB est créée avec la configuration suivante :
+
+```python
+metadata={"hnsw:space": "cosine"}
+```
+
+Ce choix est important : il aligne ChromaDB sur la même logique mathématique que le moteur Basic.
+
+Le moteur Basic calcule directement une similarité cosinus avec NumPy.
+ChromaDB, lui, retourne une distance.
+Pour conserver un score comparable, TicketFlow transforme cette distance en score :
+
+```python
+score = 1 - distance
+```
+
+Cette stratégie réduit le risque de régression lors du passage d'un moteur à l'autre.
+Un score élevé garde le même sens : plus il est proche de `1.0`, plus la procédure est pertinente.
+
+---
+
+## Seuil de similarité
+
+Les deux moteurs utilisent le même seuil par défaut :
+
+```python
+DEFAULT_SIMILARITY_THRESHOLD = 0.68
+```
+
+Ce seuil empêche le RAG de retourner une procédure simplement parce qu'elle est la moins mauvaise candidate.
+Si le meilleur score est inférieur à `0.68`, aucune procédure n'est transmise à Gemini.
+
+Cette décision réduit le risque d'hallucination guidée par un mauvais contexte.
+Dans ce cas, le prompt indique qu'aucune procédure interne spécifique n'a été trouvée, et Gemini applique un jugement ITSM général.
+
+---
+
+## Basculement dynamique depuis le dashboard
+
+Le tableau de bord expose un interrupteur Bootstrap :
+
+```text
+Activer le moteur vectoriel ChromaDB
+```
+
+Ce switch permet au technicien de choisir le moteur RAG pour chaque requête, sans redémarrer le serveur.
+
+Lorsque le formulaire est soumis, le JavaScript envoie le paramètre suivant à l'API :
+
+```json
+{
+  "description": "...",
+  "use_chroma": true
+}
+```
+
+La route `POST /api/v1/triage` sélectionne ensuite le moteur en mémoire :
+
+- `use_chroma: false` utilise `TicketRAGBasic` ;
+- `use_chroma: true` utilise `TicketRAGChroma`.
+
+Les deux moteurs coexistent donc en mémoire.
+Cette approche permet de comparer les résultats pendant une démonstration et de prouver que l'architecture est flexible sans redéploiement ni redémarrage.
+
+Pour rendre le choix visible dans le tableau, la source RAG sauvegardée est préfixée avec le moteur utilisé, par exemple :
+
+```text
+[Basic] VPN instable ou impossible à connecter
+[Chroma] VPN instable ou impossible à connecter
+```
 
 ---
 
 ## Cache local des embeddings
 
-Calculer les embeddings de toute la base de connaissances à chaque redémarrage est coûteux et ralentit le serveur.
-TicketFlow génère donc un fichier de cache local à côté de la base de connaissances :
+Le moteur Basic conserve un cache local à côté de la base de connaissances :
 
 ```text
 src/data/knowledge_base.json.embeddings.json
@@ -69,39 +190,11 @@ Il est donc ignoré dans `.gitignore` avec :
 /src/data/*.embeddings.json
 ```
 
----
+La base ChromaDB est aussi ignorée :
 
-## Seuil de similarité
-
-Le moteur utilise un seuil de similarité par défaut :
-
-```python
-DEFAULT_SIMILARITY_THRESHOLD = 0.68
+```gitignore
+/src/data/chroma_db/
 ```
-
-Ce seuil empêche le RAG de retourner une procédure simplement parce qu'elle est la moins mauvaise candidate.
-Si le meilleur score est inférieur à `0.68`, aucune procédure n'est transmise à Gemini.
-
-Cette décision réduit le risque d'hallucination guidée par un mauvais contexte.
-Dans ce cas, le prompt indique plutôt qu'aucune procédure interne spécifique n'a été trouvée, et Gemini doit appliquer un jugement ITSM général.
-
-Le score retenu est retourné dans la procédure sous la clé `score_similarite`.
-Il est ensuite sauvegardé dans la table `RagHistory`, ce qui permet d'auditer la qualité du contexte récupéré.
-
----
-
-## Similarité cosinus
-
-La similarité cosinus mesure l'angle entre deux vecteurs :
-
-- l'embedding de la description du billet ;
-- l'embedding d'une procédure de la base de connaissances.
-
-Un score plus proche de `1.0` indique une forte proximité sémantique.
-Un score plus faible indique que le lien entre le billet et la procédure est moins fiable.
-
-La fonction `cosine_similarity()` protège aussi contre les vecteurs nuls afin d'éviter une division par zéro.
-Dans ce cas, elle retourne `0.0`.
 
 ---
 
@@ -112,7 +205,7 @@ Les appels à l'API Gemini peuvent échouer temporairement, surtout dans deux ca
 - `429 RESOURCE_EXHAUSTED` : quota ou limite de débit atteint ;
 - `503 UNAVAILABLE` : service temporairement indisponible.
 
-La fonction `get_embedding()` applique donc une stratégie de retry avec délai exponentiel.
+La fonction commune `get_embedding()` applique une stratégie de retry avec délai exponentiel.
 Lorsqu'une erreur temporaire est détectée, le moteur attend avant de réessayer.
 
 Le délai augmente à chaque tentative :
@@ -130,14 +223,14 @@ Après le nombre maximal de tentatives, l'erreur est relancée afin que l'applic
 
 Le fonctionnement actuel du RAG peut être résumé ainsi :
 
-1. Chargement de `knowledge_base.json`.
-2. Chargement du cache `.embeddings.json`, s'il existe.
-3. Génération seulement des embeddings manquants.
-4. Sauvegarde du cache mis à jour.
-5. Réception d'une description de billet.
-6. Génération de l'embedding du billet.
-7. Comparaison avec les procédures par similarité cosinus.
-8. Retour de la meilleure procédure seulement si le score est supérieur ou égal à `0.68`.
-9. Sauvegarde du contexte RAG et du score dans la base SQLite.
+1. Le serveur initialise paresseusement les moteurs `TicketRAGBasic` et `TicketRAGChroma`.
+2. Le dashboard soumet un billet à `POST /api/v1/triage`.
+3. Le paramètre `use_chroma` indique le moteur souhaité.
+4. L'API sélectionne la stratégie RAG correspondante.
+5. Le moteur génère l'embedding du billet avec Gemini.
+6. Le moteur cherche la procédure la plus proche.
+7. Le score est comparé au seuil `0.68`.
+8. Si une procédure est pertinente, elle enrichit le prompt Gemini.
+9. Le contexte RAG, la source, le score et le résultat IA sont sauvegardés dans SQLite.
 
-Cette architecture reste simple pour un projet local, mais elle prépare la transition future vers une base vectorielle spécialisée si le volume de procédures ou de billets historiques augmente.
+Cette architecture conserve la simplicité du MVP tout en préparant TicketFlow à une recherche vectorielle plus scalable.
