@@ -112,7 +112,11 @@ def triage():
             return jsonify({"erreur": f"Échec de la sauvegarde du contexte RAG : {str(e)}"}), 500
     
     # 2. Construction du prompt augmenté
-    prompt = "Tu es un agent de triage ITSM expert. Ton but est de classifier les incidents informatiques.\n"
+    prompt = "Tu es un agent de triage ITSM expert pour un centre de services TI.\n"
+    prompt += "Tu dois classifier uniquement des incidents de soutien informatique aux utilisateurs.\n"
+    prompt += "Si la demande concerne de la programmation pure, de la révision de code, du débogage applicatif ou un framework de développement, assigne la priorité 'Faible' et indique que le centre de services ne fait pas de débogage de code.\n"
+    prompt += "Les catégories autorisées sont strictement : Matériel, Logiciel, Réseau, Accès.\n"
+    prompt += "Les priorités autorisées sont strictement : Faible, Moyen, Élevé, Critique.\n"
     prompt += f"Analyse le ticket utilisateur suivant :\n'{description}'\n\n"
     
     if procedure:
