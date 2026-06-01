@@ -60,10 +60,6 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
     procedure_text = f"{procedure_title} {procedure_content}".strip()
 
     category_rules = [
-        ("Réseau", [
-            "vpn", "wifi", "wi-fi", "reseau", "internet", "routeur", 
-            "ethernet", "dns", "borne", "connectivite", "tunnel",
-        ]),
         ("Accès", [
             "mot de passe", "mfa", "compte", "connexion", "verrouille", 
             "authentification", "intune", "enrolement", "licence", 
@@ -77,6 +73,10 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
             "application", "logiciel", "erreur", "500", "navigateur", 
             "windows", "dll", "service", "mise a jour",
         ]),
+        ("Réseau", [
+            "vpn", "wifi", "wi-fi", "reseau", "internet", "routeur", 
+            "ethernet", "dns", "borne", "connectivite", "tunnel",
+        ]),
     ]
 
     critical_keywords = [
@@ -84,7 +84,7 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
         "service critique", "panne majeure", "hors service", "production",
         "impossible de travailler", "aucun acces", "aucune connexion",
         "tous les utilisateurs", "bloque completement", "contourne completement", "contourne",
-        "a l'arret"
+        "a l'arret", "investisseurs", "etincelles"
     ]
     high_keywords = [
         "urgent", "bloque", "bloquee", "plusieurs utilisateurs", 
@@ -93,12 +93,15 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
     ]
     medium_keywords = [
         "erreur", "ne fonctionne pas", "ralenti", "ralentit", 
-        "partiel", "retard", "fichier", "demande", "suspect", "bizarre"
+        "partiel", "retard", "fichier", "demande", "suspect", "bizarre", "rapport"
+    ]
+    lowest_keywords = [
+        "pas urgent", "quand un technicien aura du temps", "lundi matin",
+        "developpeur", "compiler", "code source", "angular", "npm", "ralentit un peu"
     ]
     low_keywords = [
-        "pas urgent", "quand un technicien aura du temps", "lundi matin", "contournement", 
-        "ralentit un peu", "developpeur", "compiler", "code source", "un seul poste", 
-        "un seul utilisateur", "peripherique", "peripherique defectueux", "rapport"
+        "contournement", "un seul poste", 
+        "un seul utilisateur", "peripherique", "peripherique defectueux"
     ]
 
     priority_rank = {
@@ -120,68 +123,63 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
             current_rank = max(current_rank, 1)
 
         if contains_any(description_text, low_keywords):
+            current_rank = min(current_rank, 1)
+            
+        if contains_any(description_text, lowest_keywords):
             current_rank = 0
 
         return rank_priority.get(current_rank, "Moyen")
 
     if procedure:
         category = procedure.get("categorie") or "Logiciel"
-        priority = bump_priority(
-            procedure.get("priorite") or "Moyen",
-            text
+        base_priority = procedure.get("priorite") or "Moyen"
+        justification = (
+            "Gemini est temporairement indisponible à cause du quota. "
+            "La procédure RAG a servi de base et la priorité a été ajustée "
+            "selon l'impact décrit dans le billet."
         )
-
-        if category == "Accès":
-            if contains_any(text, ["contourne", "faille"]):
-                category = "Logiciel"
-            elif contains_any(text, ["vpn", "reseau", "routeur", "dns", "internet"]):
-                category = "Réseau"
-        elif category == "Matériel":
-            if contains_any(text, ["vpn", "reseau"]) and not contains_any(text, ["imprimante"]):
-                 category = "Réseau"
-            elif contains_any(text, ["application", "logiciel", "erreur 500", "dll"]) and not contains_any(text, ["imprimante", "lcd"]):
-                category = "Logiciel"
-        elif category == "Réseau":
-            if contains_any(text, ["bsod", "ecran bleu"]):
-                category = "Matériel"
-            elif contains_any(text, ["erreur 500", "imprimante"]):
-                 category = "Matériel"
-        elif category == "Logiciel":
-             if contains_any(text, ["imprimante", "lcd"]):
-                 category = "Matériel"
-
-        return {
-            "categorie": category,
-            "priorite": priority,
-            "justification": (
-                "Gemini est temporairement indisponible à cause du quota. "
-                "La procédure RAG a servi de base et la priorité a été ajustée "
-                "selon l'impact décrit dans le billet."
-            ),
-        }
-
-    categorie = "Logiciel"
-    priorite = "Faible"
-
-    for candidate, keywords in category_rules:
-        if contains_any(text, keywords):
-            categorie = candidate
-            break
-
-    if contains_any(text, critical_keywords):
-        priorite = "Critique"
-    elif contains_any(text, high_keywords):
-        priorite = "Élevé"
-    elif contains_any(text, medium_keywords):
-        priorite = "Moyen"
-
-    return {
-        "categorie": categorie,
-        "priorite": priorite,
-        "justification": (
+    else:
+        category = "Logiciel"
+        # We process Réseau before Logiciel so DNS issues override general software terms like navigateur
+        ordered_rules = [r for r in category_rules if r[0] not in ("Logiciel", "Réseau")] + \
+                        [r for r in category_rules if r[0] == "Réseau"] + \
+                        [r for r in category_rules if r[0] == "Logiciel"]
+                        
+        for candidate, keywords in ordered_rules:
+            if contains_any(text, keywords):
+                category = candidate
+                break
+        base_priority = "Faible"
+        justification = (
             "Gemini est temporairement indisponible à cause du quota. "
             "Un triage local approximatif a été produit à partir de mots-clés."
-        ),
+        )
+
+    priority = bump_priority(base_priority, text)
+
+    if category == "Accès":
+        if contains_any(text, ["contourne", "faille"]):
+            category = "Logiciel"
+        elif contains_any(text, ["vpn", "reseau", "routeur", "dns", "internet"]):
+            category = "Réseau"
+    elif category == "Matériel":
+        if contains_any(text, ["vpn", "reseau"]) and not contains_any(text, ["imprimante", "bsod", "ecran bleu"]):
+             category = "Réseau"
+        elif contains_any(text, ["application", "logiciel", "erreur 500", "dll"]) and not contains_any(text, ["imprimante", "lcd", "bsod", "ecran bleu"]):
+            category = "Logiciel"
+    elif category == "Réseau":
+        if contains_any(text, ["bsod", "ecran bleu"]):
+            category = "Matériel"
+        elif contains_any(text, ["erreur 500", "imprimante"]):
+             category = "Matériel"
+    elif category == "Logiciel":
+         if contains_any(text, ["imprimante", "lcd"]):
+             category = "Matériel"
+
+    return {
+        "categorie": category,
+        "priorite": priority,
+        "justification": justification,
     }
 
 
