@@ -98,7 +98,8 @@ def triage():
         procedure = engine.find_relevant_procedure(description) if engine else None
     except Exception as e:
         procedure = None
-        rag_warning = f"Échec de la recherche RAG {rag_engine_name} : {str(e)}"
+        rag_warning = f"Recherche RAG {rag_engine_name} ignorée (pas de clé ou erreur réseau)."
+        print(f"Échec RAG silencieux: {e}")
     
     prompt = "Tu es un agent de triage ITSM expert pour un centre de services TI.\n"
     prompt += "Tu dois classifier uniquement des incidents de soutien informatique aux utilisateurs.\n"
