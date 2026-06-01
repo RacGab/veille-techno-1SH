@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from extensions import db
+from .extensions import db
 
 
 def utc_now():

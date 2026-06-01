@@ -1,14 +1,16 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from sqlalchemy.orm import joinedload
 
-from extensions import db
-from models import RagHistory, Ticket, TriageResult
+from ..extensions import db
+from ..models import RagHistory, Ticket, TriageResult
 
+frontend_bp = Blueprint("frontend", __name__)
 
-frontend = Blueprint("frontend", __name__)
+@frontend_bp.route("/", methods=["GET"])
+def index():
+    return redirect(url_for("frontend.dashboard"))
 
-
-@frontend.route("/dashboard", methods=["GET"])
+@frontend_bp.route("/dashboard", methods=["GET"])
 def dashboard():
     try:
         tickets = (
