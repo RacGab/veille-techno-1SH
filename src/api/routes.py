@@ -9,6 +9,7 @@ from ..services import (
     TriageResponse,
     parse_triage_response,
     is_quota_error,
+    groq_triage,
     fallback_triage,
     get_or_create_rag_engine,
     get_rag_status
@@ -18,6 +19,8 @@ api_bp = Blueprint('api', __name__)
 
 MAX_DESCRIPTION_LENGTH = 4000
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
 client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 def is_reset_authorized():
@@ -31,7 +34,8 @@ def status():
     from flask import current_app
     return jsonify({
         "status": "API TicketFlow fonctionnelle", 
-        "ia": "Gemini 2.5 Flash prêt" if client is not None else "GEMINI_API_KEY manquante",
+        "ia_gemini": "Prêt" if client is not None else "Clé manquante",
+        "ia_groq": "Prêt" if GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici" else "Clé manquante",
         "rag_basic": get_rag_status("basic"),
         "rag_chroma": get_rag_status("chroma"),
         "reset_admin": "Configuré" if current_app.config.get("ADMIN_RESET_TOKEN") else "Non configuré",
@@ -81,6 +85,8 @@ def triage():
         }), 400
 
     use_chroma = bool(data.get('use_chroma', False))
+    ai_provider = str(data.get('ai_provider', 'auto')).lower()
+    
     engine, engine_error = get_or_create_rag_engine(client, use_chroma=use_chroma)
     rag_engine_name = "Chroma" if use_chroma else "Basic"
     rag_warning = None
@@ -111,13 +117,12 @@ def triage():
         
     ai_fallback = False
     ai_warning = None
+    model_used = None
+    result_json = None
 
     try:
-        if client is None:
-            result_json = fallback_triage(description, procedure)
-            ai_fallback = True
-            ai_warning = "Clé Gemini manquante; triage local de secours utilisé."
-        else:
+        # 1. Tentative avec Gemini
+        if ai_provider in ['auto', 'gemini'] and client:
             try:
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
@@ -129,15 +134,37 @@ def triage():
                     ),
                 )
                 result_json = parse_triage_response(response.text)
+                model_used = 'gemini-2.5-flash'
             except Exception as e:
+                print(f"Erreur Gemini: {e}")
                 if not is_quota_error(e):
                     raise
 
-                result_json = fallback_triage(description, procedure)
-                ai_fallback = True
-                ai_warning = "Quota Gemini atteint; triage local de secours utilisé."
+        # 2. Tentative avec Groq
+        if result_json is None and ai_provider in ['auto', 'groq'] and GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici":
+            try:
+                result_json = groq_triage(description, prompt, GROQ_API_KEY)
+                model_used = 'groq/llama-3.3-70b'
+                if ai_provider == 'auto' and client:
+                    ai_warning = "Quota Gemini atteint; triage via Groq (Llama 3) utilisé."
+            except Exception as e:
+                print(f"Erreur Groq: {e}")
+
+        # 3. Triage Local (Fallback 2)
+        if result_json is None:
+            result_json = fallback_triage(description, procedure)
+            ai_fallback = True
+            model_used = 'fallback-local'
+            
+            if ai_provider == 'gemini':
+                ai_warning = "Gemini indisponible ou clé manquante; triage local utilisé."
+            elif ai_provider == 'groq':
+                ai_warning = "Groq indisponible ou clé manquante; triage local utilisé."
+            else:
+                ai_warning = "IA indisponible (Quota); triage local utilisé."
         
         ticket = Ticket(description=description, statut='Trié')
+
         db.session.add(ticket)
         db.session.flush()
 
@@ -157,7 +184,7 @@ def triage():
             categorie=result_json['categorie'],
             priorite=result_json['priorite'],
             justification=result_json['justification'],
-            modele_ia='fallback-local' if ai_fallback else 'gemini-2.5-flash',
+            modele_ia=model_used,
         )
         db.session.add(triage_result)
         db.session.commit()

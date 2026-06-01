@@ -26,11 +26,27 @@
                             <option value="panique_aveugle">Panique sans contexte</option>
                             <option value="faux_positif">Faux positif écran bleu</option>
                         </select>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="chromaSwitch">
-                            <label class="form-check-label" for="chromaSwitch">
-                                Activer le moteur vectoriel ChromaDB
-                            </label>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="aiProvider" class="form-label fw-semibold">Modèle IA</label>
+                                <select class="form-select form-select-sm" id="aiProvider">
+                                    <option value="auto">Auto (Gemini -> Groq -> Local)</option>
+                                    <option value="gemini">Google Gemini 2.5 Flash</option>
+                                    <option value="groq">Groq Llama 3.3 70B</option>
+                                </select>
+                                <div id="aiStatusBadge" class="form-text mt-1 d-flex gap-2">
+                                    <span class="badge bg-secondary">Gemini: Chargement...</span>
+                                    <span class="badge bg-secondary">Groq: Chargement...</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex flex-column justify-content-center">
+                                <div class="form-check form-switch mt-md-4">
+                                    <input class="form-check-input" type="checkbox" id="chromaSwitch">
+                                    <label class="form-check-label" for="chromaSwitch">
+                                        Activer le moteur vectoriel ChromaDB
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <textarea
                             id="ticketDescription"
@@ -171,6 +187,8 @@ const chromaSwitch = document.getElementById("chromaSwitch");
 const submitButton = document.getElementById("submitButton");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const btnReset = document.getElementById("btnReset");
+const aiProvider = document.getElementById("aiProvider");
+const aiStatusBadge = document.getElementById("aiStatusBadge");
 
 const edgeCases = {
     hors_sujet: "Bonjour, je développe une application web et j'ai un bogue de logique de connexion avec mon RegistrationsController en Ruby on Rails. Pouvez-vous vérifier mon code ?",
@@ -178,6 +196,25 @@ const edgeCases = {
     panique_aveugle: "ÇA NE MARCHE PLUS!!! JE SUIS BLOQUÉ FAITES VITE!!!",
     faux_positif: "Bonjour, mon fond d'écran est devenu tout bleu. J'ai eu peur d'un écran bleu Windows ou d'un virus de piratage, mais c'est juste mon image qui a changé. Pouvez-vous remettre la photo du chat ?"
 };
+
+// Chargement des statuts d'IA
+async function loadStatus() {
+    try {
+        const response = await fetch("/api/v1/status");
+        const data = await response.json();
+        
+        let geminiBadge = data.ia_gemini === "Prêt" ? "bg-success" : "bg-danger";
+        let groqBadge = data.ia_groq === "Prêt" ? "bg-success" : "bg-danger";
+        
+        aiStatusBadge.innerHTML = `
+            <span class="badge ${geminiBadge}">Gemini: ${data.ia_gemini}</span>
+            <span class="badge ${groqBadge}">Groq: ${data.ia_groq}</span>
+        `;
+    } catch (e) {
+        aiStatusBadge.innerHTML = `<span class="badge bg-warning text-dark">Impossible de charger le statut IA</span>`;
+    }
+}
+loadStatus();
 
 document.querySelectorAll(".local-date").forEach((element) => {
     const utcValue = element.dataset.utc;
@@ -229,7 +266,8 @@ triageForm.addEventListener("submit", async (event) => {
             },
             body: JSON.stringify({
                 description,
-                use_chroma: chromaSwitch.checked
+                use_chroma: chromaSwitch.checked,
+                ai_provider: aiProvider.value
             })
         });
 

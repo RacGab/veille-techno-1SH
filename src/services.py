@@ -1,8 +1,10 @@
 import os
 import unicodedata
+import json
 from typing import Literal, Optional, Tuple, Any
 
 from pydantic import BaseModel, Field
+from groq import Groq
 from .rag_utils import get_rag_engine
 
 # Chemin vers la base de connaissances (relatif à ce fichier)
@@ -21,10 +23,51 @@ class TriageResponse(BaseModel):
 
 def parse_triage_response(raw_response: str) -> dict:
     """Parse la réponse brute JSON en dictionnaire validé par Pydantic."""
-    if hasattr(TriageResponse, "model_validate_json"):
-        return TriageResponse.model_validate_json(raw_response).model_dump()
+    # Nettoyage si le LLM a ajouté des blocs de code markdown
+    cleaned = raw_response.strip()
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[7:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    cleaned = cleaned.strip()
 
-    return TriageResponse.parse_raw(raw_response).dict()
+    if hasattr(TriageResponse, "model_validate_json"):
+        return TriageResponse.model_validate_json(cleaned).model_dump()
+
+    return TriageResponse.parse_raw(cleaned).dict()
+
+
+def groq_triage(description: str, prompt: str, api_key: str) -> dict:
+    """Appel à Groq (Llama 3) pour le triage de secours."""
+    client = Groq(api_key=api_key)
+    
+    # On demande explicitement du JSON à Groq en lui fournissant le schéma attendu
+    schema = {
+        "type": "object",
+        "properties": {
+            "categorie": {"type": "string", "enum": ["Matériel", "Logiciel", "Réseau", "Accès"]},
+            "priorite": {"type": "string", "enum": ["Faible", "Moyen", "Élevé", "Critique"]},
+            "justification": {"type": "string"}
+        },
+        "required": ["categorie", "priorite", "justification"]
+    }
+    
+    system_prompt = (
+        "Tu es un expert ITSM. Réponds TOUJOURS au format JSON pur selon le schéma suivant:\n"
+        f"{json.dumps(schema)}"
+    )
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.1
+    )
+    
+    return parse_triage_response(response.choices[0].message.content)
 
 
 def normalize_text(value: Optional[str]) -> str:

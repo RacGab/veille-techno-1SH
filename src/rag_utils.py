@@ -3,6 +3,7 @@ import json
 import os
 import random
 import time
+import requests
 
 import numpy as np
 
@@ -13,6 +14,7 @@ except ImportError:
 
 
 DEFAULT_EMBEDDING_MODEL = "gemini-embedding-2"
+HF_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DEFAULT_SIMILARITY_THRESHOLD = 0.68
 DEFAULT_CHROMA_PATH = os.path.join(os.path.dirname(__file__), "data", "chroma_db")
 MAX_RETRIES = 4
@@ -28,32 +30,71 @@ def _is_retryable_error(error):
     )
 
 
-def get_embedding(client, text, model=DEFAULT_EMBEDDING_MODEL):
-    """Génère un vecteur d'embedding avec retry exponentiel."""
-    last_error = None
-
+def get_embedding_hf(text, api_key):
+    """Génère un vecteur d'embedding via Hugging Face Inference API (Fallback)."""
+    api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{HF_EMBEDDING_MODEL}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    
     for attempt in range(MAX_RETRIES):
         try:
-            result = client.models.embed_content(
-                model=model,
-                contents=text,
-            )
-            return result.embeddings[0].values
-        except Exception as error:
-            last_error = error
-            if not _is_retryable_error(error) or attempt == MAX_RETRIES - 1:
+            response = requests.post(api_url, headers=headers, json={"inputs": text, "options": {"wait_for_model": True}})
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 429 or response.status_code >= 500:
+                time.sleep((2 ** attempt) + random.uniform(0, 0.5))
+                continue
+            else:
+                raise Exception(f"HF Error: {response.text}")
+        except Exception:
+            if attempt == MAX_RETRIES - 1:
                 raise
+            time.sleep((2 ** attempt) + random.uniform(0, 0.5))
+    return None
 
-            delay = (2 ** attempt) + random.uniform(0, 0.5)
-            time.sleep(delay)
 
-    raise last_error
+def get_embedding(client, text, model=DEFAULT_EMBEDDING_MODEL):
+    """Génère un vecteur d'embedding avec retry exponentiel et fallback HF."""
+    last_error = None
+    provider = "gemini"
+    
+    # 1. Tentative Gemini
+    if client:
+        for attempt in range(MAX_RETRIES):
+            try:
+                result = client.models.embed_content(
+                    model=model,
+                    contents=text,
+                )
+                return result.embeddings[0].values, "gemini"
+            except Exception as error:
+                last_error = error
+                if not _is_retryable_error(error) or attempt == MAX_RETRIES - 1:
+                    break 
+
+                delay = (2 ** attempt) + random.uniform(0, 0.5)
+                time.sleep(delay)
+
+    # 2. Fallback Hugging Face (si configuré)
+    hf_key = os.environ.get("HUGGINGFACE_API_KEY")
+    if hf_key and hf_key != "votre_cle_hf_ici":
+        try:
+            return get_embedding_hf(text, hf_key), "hf"
+        except Exception as e:
+            print(f"Échec fallback HF: {e}")
+
+    if last_error:
+        raise last_error
+    raise Exception("Aucun moteur d'embedding disponible (Gemini/HF)")
 
 
 def cosine_similarity(v1, v2):
     """Calcule une similarité cosinus sécurisée contre les vecteurs nuls."""
     vector_1 = np.array(v1, dtype=float)
     vector_2 = np.array(v2, dtype=float)
+
+    if vector_1.shape != vector_2.shape:
+        # Incompatibilité de dimension (ex: switch entre Gemini et HF)
+        return 0.0
 
     norm_1 = np.linalg.norm(vector_1)
     norm_2 = np.linalg.norm(vector_2)
@@ -125,17 +166,18 @@ class TicketRAGBasic:
             cache_key = _stable_cache_key(item)
 
             if cache_key not in self.embedding_cache:
-                self.embedding_cache[cache_key] = get_embedding(
+                vector, provider = get_embedding(
                     self.client,
                     _build_embedding_text(item),
                     model=self.embedding_model,
                 )
+                self.embedding_cache[cache_key] = vector
 
             item["embedding"] = self.embedding_cache[cache_key]
 
     def find_relevant_procedure(self, ticket_description):
         """Retourne la procédure la plus pertinente si elle dépasse le seuil configuré."""
-        query_embedding = get_embedding(
+        query_embedding, provider = get_embedding(
             self.client,
             ticket_description,
             model=self.embedding_model,
@@ -234,13 +276,12 @@ class TicketRAGChroma:
                 "priorite": item.get("priorite", ""),
             })
             documents.append(item.get("contenu", ""))
-            embeddings.append(
-                get_embedding(
-                    self.client,
-                    _build_embedding_text(item),
-                    model=self.embedding_model,
-                )
+            vector, provider = get_embedding(
+                self.client,
+                _build_embedding_text(item),
+                model=self.embedding_model,
             )
+            embeddings.append(vector)
 
         self.collection.add(
             ids=ids,
@@ -251,7 +292,7 @@ class TicketRAGChroma:
 
     def find_relevant_procedure(self, ticket_description):
         """Retourne la procédure ChromaDB la plus pertinente si elle dépasse le seuil."""
-        query_embedding = get_embedding(
+        query_embedding, provider = get_embedding(
             self.client,
             ticket_description,
             model=self.embedding_model,
