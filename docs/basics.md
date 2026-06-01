@@ -1,8 +1,9 @@
-# 🎟️ TicketFlow : Automatisation ITSM via IA
+# TicketFlow : Automatisation ITSM via IA
 
 **Projet de Veille technologique (420-1SH-SW)** **Réalisé par :** Gabriel Racine  
 
-Ce dépôt fait office de base de connaissances et de code source pour le développement d'une API de triage intelligent automatisant la classification des incidents informatiques.
+Ce dépôt fait office de base de connaissances et de code source pour le développement d'une application de triage intelligent automatisant la classification des incidents informatiques.
+Le projet expose une API REST et un tableau de bord web destiné aux techniciens.
 
 ---
 
@@ -10,8 +11,10 @@ Ce dépôt fait office de base de connaissances et de code source pour le dével
 
 Voici les liens vers la documentation du projet :
 
-* 🔗 **[Cahier de recherche (Suivi 01)](recherche.md)**
-* 🧠 **[Carte mentale de l'architecture du projet](../assets/mindmap.pdf)** *(À adapter selon le nom et l'emplacement exact du fichier)*
+* **[Cahier de recherche (Suivi 01)](recherche.md)**
+* **[Architecture RAG](architecture_rag.md)**
+* **[Architecture des données](database.md)**
+* **[Interface Web](interface_web.md)**
 
 ---
 
@@ -78,4 +81,13 @@ cd src
 python app.py
 ```
 
-Le serveur sera accessible à l'adresse http://127.0.0.1:5000
+Le serveur sera accessible à l'adresse `http://127.0.0.1:5000`.
+
+L'interface technicien est disponible ici :
+
+```text
+http://127.0.0.1:5000/dashboard
+```
+
+La route racine `/` redirige automatiquement vers ce tableau de bord.
+Le formulaire web consomme l'API interne `POST /api/v1/triage`, ce qui permet de garder une seule logique de triage pour les clients REST et pour l'interface.

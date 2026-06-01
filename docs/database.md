@@ -82,7 +82,7 @@ La relation entre `Ticket` et `TriageResult` est de type un-à-un : un billet po
 
 ## Flux de persistance
 
-Lorsqu'un client appelle `POST /api/v1/triage`, l'API effectue maintenant les étapes suivantes :
+Lorsqu'un client appelle `POST /api/v1/triage`, que ce soit depuis un client REST externe ou depuis le dashboard `/dashboard`, l'API effectue maintenant les étapes suivantes :
 
 1. Lecture et validation du champ `description`.
 2. Création immédiate d'un `Ticket` en base de données.

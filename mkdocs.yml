@@ -20,6 +20,7 @@ nav:
   - Recherche: recherche.md
   - Architecture RAG: architecture_rag.md
   - Architecture des données: database.md
+  - Interface Web: interface_web.md
   - Guide Technique: basics.md
 
 markdown_extensions:
