@@ -1,8 +1,8 @@
 """create ticketflow core tables
 
-Revision ID: 879fb21b383e
+Revision ID: ff28a6b2ac7b
 Revises: 
-Create Date: 2026-06-01 09:15:08.371403
+Create Date: 2026-06-01 11:15:53.030288
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '879fb21b383e'
+revision = 'ff28a6b2ac7b'
 down_revision = None
 branch_labels = None
 depends_on = None
