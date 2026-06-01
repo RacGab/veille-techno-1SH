@@ -28,5 +28,65 @@
     "description": "La roulette de ma souris sans fil accroche un peu quand je défile vers le bas. J'aimerais la faire remplacer quand un technicien aura du temps libre.",
     "categorie_attendue": "Matériel",
     "priorite_attendue": "Faible"
+  },
+  {
+    "id": "EDGE-2001",
+    "description": "L'imprimante réseau du secrétariat fait un bruit bizarre et indique une erreur 500 sur son petit écran LCD. Personne ne peut imprimer les contrats urgents pour les clients qui attendent à l'accueil.",
+    "categorie_attendue": "Matériel",
+    "priorite_attendue": "Élevé"
+  },
+  {
+    "id": "EDGE-2002",
+    "description": "Je n'arrive pas à me connecter au VPN. Le logiciel Cisco m'affiche un écran bleu Windows (BSOD) à chaque fois que je clique sur 'Connecter'. Mon ordinateur redémarre complètement.",
+    "categorie_attendue": "Matériel",
+    "priorite_attendue": "Élevé"
+  },
+  {
+    "id": "EDGE-2003",
+    "description": "J'ai oublié le mot de passe de mon ordinateur de bureau. C'est dommage car je voulais avancer sur un fichier Excel ce soir, mais ce n'est pas urgent du tout, je verrai ça avec vous lundi matin.",
+    "categorie_attendue": "Accès",
+    "priorite_attendue": "Faible"
+  },
+  {
+    "id": "EDGE-2004",
+    "description": "Notre application comptable (SAGE) ne se lance plus. Ça indique qu'un fichier .dll est manquant depuis la mise à jour de ce matin. Tout le département des finances (15 personnes) est à l'arrêt et on doit payer les salaires aujourd'hui.",
+    "categorie_attendue": "Logiciel",
+    "priorite_attendue": "Critique"
+  },
+  {
+    "id": "EDGE-2005",
+    "description": "Quelqu'un a renversé du café sur le commutateur (switch) réseau de la salle de conférence. Ça a fait des étincelles et maintenant on n'a plus de Wi-Fi ni d'accès au réseau filaire pendant notre présentation aux investisseurs.",
+    "categorie_attendue": "Réseau",
+    "priorite_attendue": "Critique"
+  },
+  {
+    "id": "EDGE-2006",
+    "description": "Le raccourci clavier Ctrl+C ne fonctionne plus sur mon poste de travail. Je dois utiliser le clic droit de la souris pour copier le texte. Ça me ralentit un peu.",
+    "categorie_attendue": "Matériel",
+    "priorite_attendue": "Faible"
+  },
+  {
+    "id": "EDGE-2007",
+    "description": "Je n'arrive pas à ouvrir le site web de la cafétéria pour commander mon repas, mon navigateur Chrome me dit que le DNS est introuvable. Tous les autres sites marchent très bien.",
+    "categorie_attendue": "Réseau",
+    "priorite_attendue": "Faible"
+  },
+  {
+    "id": "EDGE-2008",
+    "description": "J'ai reçu un courriel très suspect me demandant de valider mon authentification MFA avec un lien bizarre. Je n'ai pas cliqué, mais je préfère le signaler à la sécurité.",
+    "categorie_attendue": "Accès",
+    "priorite_attendue": "Moyen"
+  },
+  {
+    "id": "EDGE-2009",
+    "description": "La station d'accueil de mon portable surchauffe énormément et je sens une odeur de brûlé. Mon écran externe vient de s'éteindre soudainement.",
+    "categorie_attendue": "Matériel",
+    "priorite_attendue": "Élevé"
+  },
+  {
+    "id": "EDGE-2010",
+    "description": "Quand j'essaie de compiler le code source du nouveau projet Angular avec NPM, j'ai une erreur de 'Node.js heap out of memory'. Pouvez-vous augmenter la limite de mémoire sur mon poste développeur ?",
+    "categorie_attendue": "Logiciel",
+    "priorite_attendue": "Faible"
   }
 ]

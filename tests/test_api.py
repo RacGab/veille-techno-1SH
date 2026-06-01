@@ -4,7 +4,7 @@ import time
 import os
 
 API_URL = "http://127.0.0.1:5000/api/v1/triage"
-TEST_FILE = os.path.join(os.path.dirname(__file__), 'data', 'billets_test.json')
+TEST_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src', 'data', 'billets_test.json')
 
 def run_tests():
     print("Chargement des données de test...")
@@ -24,7 +24,7 @@ def run_tests():
         requests.get("http://127.0.0.1:5000/")
     except requests.exceptions.ConnectionError:
         print("❌ ERREUR: Impossible de se connecter à l'API.")
-        print("💡 N'oubliez pas de lancer 'python app.py' dans un autre terminal d'abord !")
+        print("💡 N'oubliez pas de lancer 'python run.py' dans un autre terminal d'abord !")
         return
 
     for i, ticket in enumerate(tickets):
