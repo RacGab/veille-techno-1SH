@@ -19,6 +19,13 @@
                 <form id="triageForm">
                     <div class="mb-3">
                         <label for="ticketDescription" class="form-label">Description du billet</label>
+                        <select class="form-select form-select-sm mb-2" id="testCases">
+                            <option value="">-- Remplir avec un cas de test (Edge Cases) --</option>
+                            <option value="hors_sujet">Hors sujet</option>
+                            <option value="multi_problemes">Multi-problèmes urgent</option>
+                            <option value="panique_aveugle">Panique sans contexte</option>
+                            <option value="faux_positif">Faux positif écran bleu</option>
+                        </select>
                         <textarea
                             id="ticketDescription"
                             class="form-control"
@@ -153,9 +160,17 @@
 <script>
 const triageForm = document.getElementById("triageForm");
 const ticketDescription = document.getElementById("ticketDescription");
+const testCases = document.getElementById("testCases");
 const submitButton = document.getElementById("submitButton");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const btnReset = document.getElementById("btnReset");
+
+const edgeCases = {
+    hors_sujet: "Bonjour, je développe une application web et j'ai un bogue de logique de connexion avec mon RegistrationsController en Ruby on Rails. Pouvez-vous vérifier mon code ?",
+    multi_problemes: "URGENT: Le Rover Samsung pour le GoLive DSN refuse de s'enrôler dans Intune. De plus, mon compte Octopus est verrouillé pour documenter ça, et l'imprimante réseau est bourrée.",
+    panique_aveugle: "ÇA NE MARCHE PLUS!!! JE SUIS BLOQUÉ FAITES VITE!!!",
+    faux_positif: "Bonjour, mon fond d'écran est devenu tout bleu. J'ai eu peur d'un écran bleu Windows ou d'un virus de piratage, mais c'est juste mon image qui a changé. Pouvez-vous remettre la photo du chat ?"
+};
 
 document.querySelectorAll(".local-date").forEach((element) => {
     const utcValue = element.dataset.utc;
@@ -173,6 +188,17 @@ document.querySelectorAll(".local-date").forEach((element) => {
         hour: "2-digit",
         minute: "2-digit"
     });
+});
+
+testCases.addEventListener("change", () => {
+    const selectedCase = testCases.value;
+
+    if (!selectedCase) {
+        return;
+    }
+
+    ticketDescription.value = edgeCases[selectedCase] || "";
+    ticketDescription.focus();
 });
 
 triageForm.addEventListener("submit", async (event) => {
