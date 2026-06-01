@@ -26,6 +26,12 @@
                             <option value="panique_aveugle">Panique sans contexte</option>
                             <option value="faux_positif">Faux positif écran bleu</option>
                         </select>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="chromaSwitch">
+                            <label class="form-check-label" for="chromaSwitch">
+                                Activer le moteur vectoriel ChromaDB
+                            </label>
+                        </div>
                         <textarea
                             id="ticketDescription"
                             class="form-control"
@@ -161,6 +167,7 @@
 const triageForm = document.getElementById("triageForm");
 const ticketDescription = document.getElementById("ticketDescription");
 const testCases = document.getElementById("testCases");
+const chromaSwitch = document.getElementById("chromaSwitch");
 const submitButton = document.getElementById("submitButton");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const btnReset = document.getElementById("btnReset");
@@ -220,7 +227,10 @@ triageForm.addEventListener("submit", async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ description })
+            body: JSON.stringify({
+                description,
+                use_chroma: chromaSwitch.checked
+            })
         });
 
         if (response.status === 201) {

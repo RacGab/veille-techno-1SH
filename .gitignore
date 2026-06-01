@@ -4,3 +4,4 @@ __pycache__/
 /src/instance/
 *.db
 /src/data/*.embeddings.json
+/src/data/chroma_db/

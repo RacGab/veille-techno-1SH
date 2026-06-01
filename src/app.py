@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from extensions import db, migrate
 
 # Import du moteur RAG
-from rag_utils import TicketRAG
+from rag_utils import get_rag_engine
 # Import des modèles pour que Flask-Migrate détecte les tables
 from models import RagHistory, Ticket, TriageResult
 from views import frontend
@@ -20,6 +20,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ticketflow.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+KNOWLEDGE_BASE_PATH = os.path.join(os.path.dirname(__file__), 'data', 'knowledge_base.json')
 
 db.init_app(app)
 migrate.init_app(app, db)
@@ -33,19 +34,33 @@ class TriageResponse(BaseModel):
     priorite: str = Field(description="Priorité (Faible, Moyen, Élevé, Critique)")
     justification: str = Field(description="Brève justification du choix du triage")
 
-# Initialisation paresseuse du RAG pour éviter de bloquer le démarrage en cas d'erreur de clé API
-rag_engine = None
+# Initialisation paresseuse des moteurs RAG pour éviter de bloquer le démarrage
+rag_engine_basic = None
+rag_engine_chroma = None
 
 @app.before_request
 def init_rag():
-    global rag_engine
-    # Initialise le RAG uniquement si ce n'est pas déjà fait
-    if rag_engine is None:
-        kb_path = os.path.join(os.path.dirname(__file__), 'data', 'knowledge_base.json')
+    global rag_engine_basic, rag_engine_chroma
+
+    if rag_engine_basic is None:
         try:
-            rag_engine = TicketRAG(client, kb_path)
+            rag_engine_basic = get_rag_engine(
+                client=client,
+                kb_path=KNOWLEDGE_BASE_PATH,
+                use_chroma=False,
+            )
         except Exception as e:
-            print(f"⚠️ Erreur d'initialisation du RAG: {e}")
+            print(f"⚠️ Erreur d'initialisation du RAG Basic: {e}")
+
+    if rag_engine_chroma is None:
+        try:
+            rag_engine_chroma = get_rag_engine(
+                client=client,
+                kb_path=KNOWLEDGE_BASE_PATH,
+                use_chroma=True,
+            )
+        except Exception as e:
+            print(f"⚠️ Erreur d'initialisation du RAG ChromaDB: {e}")
 
 @app.route('/', methods=['GET'])
 def index():
@@ -53,11 +68,11 @@ def index():
 
 @app.route('/api/v1/status', methods=['GET'])
 def status():
-    rag_status = "Actif" if rag_engine is not None else "Inactif / Erreur d'initialisation"
     return jsonify({
         "status": "API TicketFlow fonctionnelle", 
         "ia": "Gemini 2.5 Flash prêt",
-        "rag": rag_status
+        "rag_basic": "Actif" if rag_engine_basic is not None else "Inactif / Erreur d'initialisation",
+        "rag_chroma": "Actif" if rag_engine_chroma is not None else "Inactif / Erreur d'initialisation"
     })
 
 @app.route('/api/v1/tickets', methods=['DELETE'])
@@ -82,6 +97,14 @@ def triage():
         return jsonify({"erreur": "Requête invalide. Veuillez fournir une 'description' en JSON."}), 400
         
     description = data['description']
+    use_chroma = data.get('use_chroma', False)
+    engine = rag_engine_chroma if use_chroma else rag_engine_basic
+    rag_engine_name = "Chroma" if use_chroma else "Basic"
+
+    if engine is None:
+        return jsonify({
+            "erreur": f"Le moteur RAG {rag_engine_name} n'est pas disponible."
+        }), 503
 
     try:
         ticket = Ticket(description=description, statut='Nouveau')
@@ -93,14 +116,14 @@ def triage():
         return jsonify({"erreur": f"Échec de la création du ticket en base de données : {str(e)}"}), 500
     
     # 1. Étape RAG : Recherche de procédures pertinentes
-    procedure = rag_engine.find_relevant_procedure(description) if rag_engine else None
+    procedure = engine.find_relevant_procedure(description) if engine else None
 
     if procedure:
         try:
             rag_entry = RagHistory(
                 ticket_id=ticket_id,
                 contexte_retrouve=procedure.get('contenu') or str(procedure),
-                source=procedure.get('titre'),
+                source=f"[{rag_engine_name}] {procedure.get('titre')}",
                 score_similarite=procedure.get('score_similarite'),
                 categorie_reference=procedure.get('categorie'),
                 priorite_reference=procedure.get('priorite'),
@@ -158,7 +181,8 @@ def triage():
         # Ajout d'une métadonnée pour la transparence (savoir si le RAG a aidé)
         result_json['_meta'] = {
             "ticket_id": ticket_id,
-            "rag_utilise": procedure['titre'] if procedure else False
+            "rag_utilise": procedure['titre'] if procedure else False,
+            "moteur_rag": rag_engine_name
         }
         
         return jsonify(result_json), 201

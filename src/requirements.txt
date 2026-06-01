@@ -4,3 +4,4 @@ python-dotenv
 Flask-SQLAlchemy
 Flask-Migrate
 numpy
+chromadb
