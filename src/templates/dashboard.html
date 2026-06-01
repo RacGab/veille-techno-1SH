@@ -47,8 +47,11 @@
 
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center gap-3">
                 <h2 class="h5 mb-0">Billets triés</h2>
+                <button id="btnReset" class="btn btn-outline-danger btn-sm" type="button">
+                    Vider l'historique
+                </button>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -152,6 +155,7 @@ const triageForm = document.getElementById("triageForm");
 const ticketDescription = document.getElementById("ticketDescription");
 const submitButton = document.getElementById("submitButton");
 const loadingSpinner = document.getElementById("loadingSpinner");
+const btnReset = document.getElementById("btnReset");
 
 document.querySelectorAll(".local-date").forEach((element) => {
     const utcValue = element.dataset.utc;
@@ -213,6 +217,44 @@ triageForm.addEventListener("submit", async (event) => {
     } finally {
         submitButton.disabled = false;
         loadingSpinner.classList.add("d-none");
+    }
+});
+
+btnReset.addEventListener("click", async () => {
+    const confirmed = window.confirm(
+        "Êtes-vous sûr de vouloir supprimer tous les billets ? Cette action est irréversible."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    btnReset.disabled = true;
+
+    try {
+        const response = await fetch("/api/v1/tickets", {
+            method: "DELETE"
+        });
+
+        if (response.ok) {
+            window.location.reload();
+            return;
+        }
+
+        let message = "Impossible de vider l'historique des billets.";
+
+        try {
+            const payload = await response.json();
+            message = payload.erreur || message;
+        } catch (error) {
+            message = `${message} Code HTTP : ${response.status}`;
+        }
+
+        alert(message);
+    } catch (error) {
+        alert(`Impossible de joindre l'API TicketFlow : ${error.message}`);
+    } finally {
+        btnReset.disabled = false;
     }
 });
 </script>

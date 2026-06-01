@@ -60,6 +60,20 @@ def status():
         "rag": rag_status
     })
 
+@app.route('/api/v1/tickets', methods=['DELETE'])
+def delete_tickets():
+    try:
+        RagHistory.query.delete()
+        TriageResult.query.delete()
+        Ticket.query.delete()
+        db.session.commit()
+
+        return jsonify({"message": "Base de données réinitialisée"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"erreur": f"Échec de la réinitialisation : {str(e)}"}), 500
+
 @app.route('/api/v1/triage', methods=['POST'])
 def triage():
     data = request.get_json()
