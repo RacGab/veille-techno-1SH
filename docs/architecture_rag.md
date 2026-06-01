@@ -215,7 +215,8 @@ Le délai augmente à chaque tentative :
 ```
 
 Un léger délai aléatoire est ajouté pour éviter que plusieurs requêtes réessaient exactement au même moment.
-Après le nombre maximal de tentatives, l'erreur est relancée afin que l'application puisse la gérer proprement.
+Après le nombre maximal de tentatives, ou en cas d'erreur de permission (`403`), l'erreur est relancée. 
+Cependant, l'API intercepte cette erreur silencieusement pour éviter de planter l'application. La procédure RAG devient simplement "vide", ce qui permet au système de triage de secours (IA via **Groq** ou mots-clés) de s'exécuter de façon transparente.
 
 ---
 
@@ -225,12 +226,16 @@ Le fonctionnement actuel du RAG peut être résumé ainsi :
 
 1. Le serveur initialise paresseusement les moteurs `TicketRAGBasic` et `TicketRAGChroma`.
 2. Le dashboard soumet un billet à `POST /api/v1/triage`.
-3. Le paramètre `use_chroma` indique le moteur souhaité.
+3. Le paramètre `use_chroma` indique le moteur souhaité, et `ai_provider` indique le modèle IA (Auto, Gemini, Groq).
 4. L'API sélectionne la stratégie RAG correspondante.
-5. Le moteur génère l'embedding du billet avec Gemini.
+5. Le moteur génère l'embedding du billet avec Gemini (si disponible).
 6. Le moteur cherche la procédure la plus proche.
 7. Le score est comparé au seuil `0.68`.
-8. Si une procédure est pertinente, elle enrichit le prompt Gemini.
-9. Le contexte RAG, la source, le score et le résultat IA sont sauvegardés dans SQLite.
+8. Si une procédure est pertinente, elle enrichit le prompt.
+9. L'IA analyse le prompt :
+    *   **Gemini** (Priorité 1)
+    *   **Groq Llama 3** (Fallback 1 - si Gemini échoue)
+    *   **Algorithme Mots-clés** (Fallback 2 - si l'IA échoue)
+10. Le contexte RAG, la source, le score et le résultat IA sont sauvegardés dans SQLite.
 
-Cette architecture conserve la simplicité du MVP tout en préparant TicketFlow à une recherche vectorielle plus scalable.
+Cette architecture conserve la simplicité du MVP tout en préparant TicketFlow à une recherche vectorielle plus scalable et garantit une disponibilité à 100% grâce à ses mécanismes de secours dynamiques.

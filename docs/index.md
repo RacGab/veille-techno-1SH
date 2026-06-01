@@ -8,6 +8,7 @@ L'objectif est de concevoir un système capable de qualifier et prioriser les de
 
 ### Structure de la documentation
 
+* **[Structure du Projet](structure.md)** : Rôle et emplacement de chaque fichier et dossier de l'application.
 * **[Recherche](recherche.md)** : Documentation des sources, technologies explorées et concepts clés (RAG, API REST).
 * **[Architecture RAG](architecture_rag.md)** : Fonctionnement du moteur de recherche sémantique et du cache d'embeddings.
 * **[Architecture des données](database.md)** : Modèles SQLite, relations SQLAlchemy et migrations.
