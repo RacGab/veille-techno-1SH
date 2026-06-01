@@ -188,22 +188,46 @@ class TicketRAGChroma:
             metadata={"hnsw:space": "cosine"},
         )
 
-        if self.collection.count() == 0:
-            self._seed_collection()
+        self._sync_collection()
 
-    def _seed_collection(self):
+    def _load_knowledge_base(self):
         with open(self.kb_path, "r", encoding="utf-8") as file:
-            knowledge_base = json.load(file)
+            return json.load(file)
+
+    def _sync_collection(self):
+        knowledge_base = self._load_knowledge_base()
+        current_items = {
+            _stable_cache_key(item): item
+            for item in knowledge_base
+        }
+
+        existing_records = self.collection.get()
+        existing_ids = set(existing_records.get("ids", []))
+        current_ids = set(current_items.keys())
+        stale_ids = list(existing_ids - current_ids)
+
+        if stale_ids:
+            self.collection.delete(ids=stale_ids)
+
+        missing_ids = [
+            item_id
+            for item_id in current_ids
+            if item_id not in existing_ids
+        ]
+
+        if not missing_ids:
+            return
 
         ids = []
         metadatas = []
         documents = []
         embeddings = []
 
-        print("Initialisation de la collection ChromaDB RAG...")
+        print("Synchronisation de la collection ChromaDB RAG...")
 
-        for item in knowledge_base:
-            ids.append(_stable_cache_key(item))
+        for item_id in missing_ids:
+            item = current_items[item_id]
+            ids.append(item_id)
             metadatas.append({
                 "titre": item.get("titre", ""),
                 "categorie": item.get("categorie", ""),
@@ -218,13 +242,12 @@ class TicketRAGChroma:
                 )
             )
 
-        if ids:
-            self.collection.add(
-                ids=ids,
-                metadatas=metadatas,
-                documents=documents,
-                embeddings=embeddings,
-            )
+        self.collection.add(
+            ids=ids,
+            metadatas=metadatas,
+            documents=documents,
+            embeddings=embeddings,
+        )
 
     def find_relevant_procedure(self, ticket_description):
         """Retourne la procédure ChromaDB la plus pertinente si elle dépasse le seuil."""

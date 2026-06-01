@@ -265,11 +265,22 @@ btnReset.addEventListener("click", async () => {
         return;
     }
 
+    const savedToken = window.sessionStorage.getItem("ticketflowResetToken") || "";
+    const resetToken = window.prompt("Jeton administrateur requis :", savedToken);
+
+    if (!resetToken) {
+        return;
+    }
+
+    window.sessionStorage.setItem("ticketflowResetToken", resetToken);
     btnReset.disabled = true;
 
     try {
         const response = await fetch("/api/v1/tickets", {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+                "X-Admin-Reset-Token": resetToken
+            }
         });
 
         if (response.ok) {

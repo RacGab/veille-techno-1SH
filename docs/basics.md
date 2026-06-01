@@ -49,6 +49,7 @@ pip install -r src/requirements.txt
 * Ajoutez-y votre clé Google Gemini Pro :
 ```text
 GEMINI_API_KEY=votre_cle_api_ici
+TICKETFLOW_ADMIN_RESET_TOKEN=un_jeton_local_pour_vider_l_historique
 ```
 
 ---
