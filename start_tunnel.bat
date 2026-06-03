@@ -3,6 +3,9 @@ set FLASK_APP=run.py
 set FLASK_ENV=development
 set FLASK_DEBUG=1
 
+echo [TicketFlow] Nettoyage des anciennes instances...
+taskkill /f /im python.exe > nul 2>&1
+
 echo [TicketFlow] 1. Demarrage du serveur Flask en arriere-plan...
 start /b "Flask Server" .\src\venv\Scripts\python.exe -m flask run
 
@@ -19,7 +22,7 @@ echo [TicketFlow] Votre IP restera 100%% anonyme.
 echo [TicketFlow] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo.
 
-ssh -o StrictHostKeyChecking=no -R 80:localhost:5000 serveo.net
+ssh -o StrictHostKeyChecking=no -R 80:127.0.0.1:5000 serveo.net
 
 echo.
 echo [TicketFlow] Tunnel ferme.
