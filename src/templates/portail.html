@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Portail Demandeur - TicketFlow ITSM{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        
+        <!-- Formulaire de création -->
+        <div class="card shadow-sm" id="creationCard">
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0">Créer une demande de support</h1>
+            </div>
+            <div class="card-body">
+                <form id="portailForm">
+                    <div class="mb-4">
+                        <label for="ticketDescription" class="form-label">Description du problème <span class="text-danger">*</span></label>
+                        <textarea
+                            id="ticketDescription"
+                            class="form-control"
+                            rows="5"
+                            placeholder="Veuillez décrire votre problème en détail..."
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <button id="submitButton" type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            Envoyer ma demande
+                        </button>
+                    </div>
+                    <div id="loadingStatus" class="d-none mt-3 text-center text-muted">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Envoi en cours...
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Carte de confirmation (cachée par défaut) -->
+        <div class="card shadow-sm border-success d-none" id="confirmationCard">
+            <div class="card-header bg-success text-white d-flex align-items-center">
+                <h2 class="h5 mb-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill me-2" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>Demande enregistrée avec succès</h2>
+            </div>
+            <div class="card-body">
+                <p class="fw-semibold text-center mb-4">Votre demande a été transmise à l'équipe technique. Conservez votre numéro de ticket pour tout suivi futur.</p>
+                
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Ticket
+                        <span class="badge bg-primary rounded-pill fs-6" id="confTicketId">#</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Catégorie
+                        <span class="fw-semibold" id="confCategorie">-</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Priorité
+                        <span class="" id="confPriorite">-</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Statut
+                        <span class="badge bg-secondary" id="confStatut">Trié</span>
+                    </li>
+                </ul>
+                
+                <div class="text-center">
+                    <button id="btnNewTicket" class="btn btn-outline-primary">Faire une nouvelle demande</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const portailForm = document.getElementById("portailForm");
+const ticketDescription = document.getElementById("ticketDescription");
+const submitButton = document.getElementById("submitButton");
+const loadingStatus = document.getElementById("loadingStatus");
+
+const creationCard = document.getElementById("creationCard");
+const confirmationCard = document.getElementById("confirmationCard");
+
+const confTicketId = document.getElementById("confTicketId");
+const confCategorie = document.getElementById("confCategorie");
+const confPriorite = document.getElementById("confPriorite");
+const confStatut = document.getElementById("confStatut");
+
+const btnNewTicket = document.getElementById("btnNewTicket");
+
+portailForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const description = ticketDescription.value.trim();
+
+    if (!description) {
+        alert("Veuillez saisir une description de votre problème.");
+        return;
+    }
+
+    submitButton.disabled = true;
+    loadingStatus.classList.remove("d-none");
+
+    try {
+        const response = await fetch("/api/v1/triage", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                description: description,
+                use_chroma: true, // Default to true or auto for best result
+                ai_provider: "auto"
+            })
+        });
+
+        if (response.status === 201) {
+            const data = await response.json();
+            
+            // Show confirmation
+            creationCard.classList.add("d-none");
+            confirmationCard.classList.remove("d-none");
+            
+            // Populate confirmation details
+            confTicketId.textContent = `#${data._meta?.ticket_id || '?'}`;
+            confCategorie.textContent = data.categorie || 'Non classé';
+            
+            // Priority badge coloring
+            const prio = data.priorite || 'Non définie';
+            confPriorite.textContent = prio;
+            confPriorite.className = "badge text-dark"; // Reset
+            if (prio === "Critique") confPriorite.classList.add("bg-danger", "text-white");
+            else if (prio === "Élevé") confPriorite.classList.add("bg-warning");
+            else if (prio === "Moyen") confPriorite.classList.add("bg-info");
+            else confPriorite.classList.add("bg-light");
+            
+            confStatut.textContent = "Trié";
+            confStatut.className = "badge bg-success";
+            
+            return;
+        }
+
+        let message = "Une erreur est survenue pendant l'envoi.";
+        try {
+            const payload = await response.json();
+            message = payload.erreur || message;
+        } catch (error) {
+            message = `${message} Code HTTP : ${response.status}`;
+        }
+        alert(message);
+    } catch (error) {
+        alert(`Impossible de joindre le serveur : ${error.message}`);
+    } finally {
+        submitButton.disabled = false;
+        loadingStatus.classList.add("d-none");
+    }
+});
+
+btnNewTicket.addEventListener("click", () => {
+    ticketDescription.value = "";
+    confirmationCard.classList.add("d-none");
+    creationCard.classList.remove("d-none");
+});
+</script>
+{% endblock %}

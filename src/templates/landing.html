@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - TicketFlow ITSM{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h1 class="display-5 fw-bold">Bienvenue sur TicketFlow ITSM</h1>
+            <p class="lead text-muted">Sélectionnez votre portail d'accès</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <div class="col-md-6 col-lg-5">
+            <div class="card h-100 shadow-sm border-primary text-center">
+                <div class="card-body d-flex flex-column py-5">
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-person-badge text-primary" viewBox="0 0 16 16">
+                          <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                          <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795a4.2 4.2 0 0 0-.776-.492C11.392 12.387 10.063 12 8 12s-3.392.387-4.224.803a4.2 4.2 0 0 0-.776.492z"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title h3">Je suis un demandeur</h2>
+                    <p class="card-text text-muted flex-grow-1">Créer une demande de support et obtenir un numéro de ticket.</p>
+                    <a href="{{ url_for('frontend.portail') }}" class="btn btn-primary btn-lg mt-3">Accéder au portail</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-5">
+            <div class="card h-100 shadow-sm border-secondary text-center">
+                <div class="card-body d-flex flex-column py-5">
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-pc-display-horizontal text-secondary" viewBox="0 0 16 16">
+                          <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v7A1.5 1.5 0 0 0 1.5 10H6v1H1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-5v-1h4.5A1.5 1.5 0 0 0 16 8.5v-7A1.5 1.5 0 0 0 14.5 0zm0 1h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5M12 12.5a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0m2 0a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0M1.5 12h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M1 14.25a.25.25 0 0 1 .25-.25h5.5a.25.25 0 1 1 0 .5h-5.5a.25.25 0 0 1-.25-.25"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title h3">Je suis un technicien</h2>
+                    <p class="card-text text-muted flex-grow-1">Consulter et gérer les tickets.</p>
+                    <a href="{{ url_for('frontend.dashboard') }}" class="btn btn-secondary btn-lg mt-3">Accéder au dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

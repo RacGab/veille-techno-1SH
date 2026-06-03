@@ -8,7 +8,11 @@ frontend_bp = Blueprint("frontend", __name__)
 
 @frontend_bp.route("/", methods=["GET"])
 def index():
-    return redirect(url_for("frontend.dashboard"))
+    return render_template("landing.html")
+
+@frontend_bp.route("/portail", methods=["GET"])
+def portail():
+    return render_template("portail.html")
 
 @frontend_bp.route("/dashboard", methods=["GET"])
 def dashboard():
