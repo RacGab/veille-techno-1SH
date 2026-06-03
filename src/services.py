@@ -177,7 +177,7 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
         category = procedure.get("categorie") or "Logiciel"
         base_priority = procedure.get("priorite") or "Moyen"
         justification = (
-            "Gemini est temporairement indisponible à cause du quota. "
+            "Triage effectué par l'algorithme local. "
             "La procédure RAG a servi de base et la priorité a été ajustée "
             "selon l'impact décrit dans le billet."
         )
@@ -194,8 +194,8 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
                 break
         base_priority = "Faible"
         justification = (
-            "Gemini est temporairement indisponible à cause du quota. "
-            "Un triage local approximatif a été produit à partir de mots-clés."
+            "Triage effectué par l'algorithme local. "
+            "Un triage approximatif a été produit à partir de mots-clés."
         )
 
     priority = bump_priority(base_priority, text)
@@ -227,9 +227,11 @@ def fallback_triage(description: str, procedure: Optional[dict] = None) -> dict:
 
 
 # État global des moteurs RAG (géré par le service)
+import time
+
 rag_engines = {
-    "basic": {"engine": None, "error": None},
-    "chroma": {"engine": None, "error": None},
+    "basic": {"engine": None, "error": None, "error_timestamp": None},
+    "chroma": {"engine": None, "error": None, "error_timestamp": None},
 }
 
 
@@ -245,7 +247,8 @@ def get_or_create_rag_engine(client, use_chroma: bool = False) -> Tuple[Any, Opt
         return engine_state["engine"], None
 
     if engine_state["error"] is not None:
-        return None, engine_state["error"]
+        if engine_state["error_timestamp"] and time.time() - engine_state["error_timestamp"] < 300:
+            return None, engine_state["error"]
 
     try:
         engine_state["engine"] = get_rag_engine(
@@ -253,9 +256,12 @@ def get_or_create_rag_engine(client, use_chroma: bool = False) -> Tuple[Any, Opt
             kb_path=KNOWLEDGE_BASE_PATH,
             use_chroma=use_chroma,
         )
+        engine_state["error"] = None
+        engine_state["error_timestamp"] = None
         return engine_state["engine"], None
     except Exception as e:
         engine_state["error"] = str(e)
+        engine_state["error_timestamp"] = time.time()
         return None, engine_state["error"]
 
 

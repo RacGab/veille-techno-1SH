@@ -33,6 +33,7 @@
                                     <option value="auto">Auto (Gemini -> Groq -> Local)</option>
                                     <option value="gemini">Google Gemini 2.5 Flash</option>
                                     <option value="groq">Groq Llama 3.3 70B</option>
+                                    <option value="local">Algorithmique Local (Sans IA)</option>
                                 </select>
                                 <div id="aiStatusBadge" class="form-text mt-1 d-flex gap-2">
                                     <span class="badge bg-secondary">Gemini: Chargement...</span>
@@ -106,7 +107,7 @@
                                     <td
                                         class="local-date text-muted small text-nowrap w-auto"
                                         {% if ticket.date_creation %}
-                                            data-utc="{{ ticket.date_creation.isoformat() }}Z"
+                                            data-utc="{{ ticket.date_creation.strftime('%Y-%m-%dT%H:%M:%SZ') }}"
                                         {% endif %}
                                     >
                                         {% if ticket.date_creation %}

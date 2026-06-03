@@ -161,17 +161,16 @@ def triage():
                 ai_warning = "Gemini indisponible ou clé manquante; triage local utilisé."
             elif ai_provider == 'groq':
                 ai_warning = "Groq indisponible ou clé manquante; triage local utilisé."
+            elif ai_provider == 'local':
+                ai_warning = "Triage algorithmique local forcé manuellement."
             else:
                 ai_warning = "IA indisponible (Quota); triage local utilisé."
         
-        ticket = Ticket(description=description, statut='Trié')
-
-        db.session.add(ticket)
-        db.session.flush()
+        ticket = Ticket(description=description, statut='en_attente')
 
         if procedure:
             rag_entry = RagHistory(
-                ticket_id=ticket.id,
+                ticket=ticket,
                 contexte_retrouve=procedure.get('contenu') or str(procedure),
                 source=f"[{rag_engine_name}] {procedure.get('titre')}",
                 score_similarite=procedure.get('score_similarite'),
@@ -181,13 +180,16 @@ def triage():
             db.session.add(rag_entry)
 
         triage_result = TriageResult(
-            ticket_id=ticket.id,
+            ticket=ticket,
             categorie=result_json['categorie'],
             priorite=result_json['priorite'],
             justification=result_json['justification'],
             modele_ia=model_used,
         )
         db.session.add(triage_result)
+        
+        ticket.statut = 'Trié'
+        db.session.add(ticket)
         db.session.commit()
         
         result_json['_meta'] = {
