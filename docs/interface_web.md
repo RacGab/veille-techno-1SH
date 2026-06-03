@@ -1,29 +1,26 @@
 # Interface Web
 
-Le Suivi 3 ajoute une interface web directement intégrée à l'application Flask.
-Cette interface transforme TicketFlow en outil utilisable par un technicien, sans devoir passer par Postman ou `curl`.
+Le projet propose une interface web complète directement intégrée à l'application Flask, remplaçant la nécessité d'utiliser Postman ou `curl`.
 
-Le tableau de bord est accessible à l'adresse suivante lorsque le serveur Flask est lancé :
+L'interface offre désormais une expérience séparée selon le rôle de l'utilisateur :
 
-```text
-http://127.0.0.1:5000/dashboard
-```
-
-La route racine `/` redirige aussi vers `/dashboard`.
+- **Page d'accueil (`/`)** : Choix du portail.
+- **Portail Demandeur (`/portail`)** : Formulaire épuré pour la soumission de billets sans métadonnées superflues.
+- **Dashboard Technicien (`/dashboard`)** : Vue globale des billets triés et options avancées (sélection de l'IA, moteur RAG).
 
 ---
 
 ## Séparation avec les Blueprints
 
-La logique web est isolée dans le fichier `src/views.py` à l'aide d'un Blueprint Flask nommé `frontend`.
+La logique web est isolée dans le fichier `src/frontend/routes.py` à l'aide d'un Blueprint Flask nommé `frontend`.
 
 Cette séparation permet de distinguer deux responsabilités :
 
-- `src/app.py` conserve les routes API, comme `POST /api/v1/triage` et `GET /api/v1/status` ;
-- `src/views.py` gère les routes destinées à l'interface web, dont `GET /dashboard`.
+- `src/api/routes.py` conserve les routes API, comme `POST /api/v1/triage` et `GET /api/v1/status` ;
+- `src/frontend/routes.py` gère les routes destinées à l'interface web (`/`, `/portail`, `/dashboard`).
 
-Le Blueprint est enregistré dans l'application principale avec `app.register_blueprint(frontend)`.
-Cette approche prépare le projet à une architecture plus modulaire, où l'API REST et l'interface technicien peuvent évoluer séparément.
+Le Blueprint est enregistré dans l'application principale avec `app.register_blueprint(frontend_bp)`.
+Cette approche prépare le projet à une architecture plus modulaire, où l'API REST et l'interface utilisateur peuvent évoluer séparément.
 
 ---
 
@@ -35,40 +32,35 @@ L'interface utilise les templates Jinja2 placés dans le dossier :
 src/templates/
 ```
 
-Deux templates principaux structurent l'interface :
+Quatre templates principaux structurent l'interface :
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `base.html` | Layout commun, CDN Bootstrap 5, barre de navigation et bloc de contenu |
-| `dashboard.html` | Formulaire de soumission et tableau des billets triés |
+| `base.html` | Layout commun, CDN Bootstrap 5, barre de navigation globale et bloc de contenu |
+| `landing.html` | Page d'accueil présentant les deux points d'accès |
+| `portail.html` | Formulaire simplifié pour les demandeurs (retour d'informations ciblé) |
+| `dashboard.html` | Formulaire avancé et tableau des billets triés pour les techniciens |
 
-Bootstrap 5 est utilisé pour accélérer la mise en forme :
-
-- navbar sombre `TicketFlow ITSM` ;
-- cartes pour séparer le formulaire et la liste des billets ;
-- tableau responsive avec lignes alternées ;
-- badges de couleur pour les priorités ;
-- spinner de chargement pendant l'analyse IA.
-- interrupteur de sélection du moteur RAG pour comparer Basic et ChromaDB.
+Bootstrap 5 est utilisé pour accélérer la mise en forme (composants responsifs, spinners, alertes).
 
 ---
 
-## Fonctionnement du dashboard
+## Fonctionnement du dashboard technicien
 
 La route `/dashboard` récupère les billets depuis SQLite avec SQLAlchemy.
 Elle charge aussi les relations associées :
 
-- `TriageResult` pour afficher la catégorie, la priorité et la justification IA ;
+- `TriageResult` pour afficher la catégorie, la priorité et la justification ;
 - `RagHistory` pour afficher la procédure RAG utilisée et son score de similarité.
 
-Les billets sont triés du plus récent au plus ancien afin que le technicien voie immédiatement les demandes les plus récentes.
+Les billets sont triés du plus récent au plus ancien.
 
 ---
 
 ## Soumission asynchrone avec `fetch`
 
-Le formulaire du dashboard ne recharge pas immédiatement la page.
-Il utilise JavaScript et `fetch()` pour envoyer la description du billet à l'API interne :
+Les formulaires du portail et du dashboard ne rechargent pas immédiatement la page.
+Ils utilisent JavaScript et `fetch()` pour envoyer la description du billet à l'API interne :
 
 ```text
 POST /api/v1/triage
@@ -76,59 +68,47 @@ POST /api/v1/triage
 
 Le flux est le suivant :
 
-1. Le technicien saisit une description dans le champ texte.
-2. JavaScript intercepte la soumission du formulaire.
-3. Le bouton est désactivé pour éviter les doubles soumissions.
-4. Un spinner Bootstrap est affiché.
-5. La description est envoyée à `/api/v1/triage` en JSON.
-6. Si l'API retourne `201 Created`, la page est rechargée pour afficher le nouveau billet.
-7. En cas d'erreur, une alerte JavaScript affiche le message retourné par l'API.
-
-Cette mécanique réutilise l'API REST existante au lieu de dupliquer la logique de triage côté interface.
-Le dashboard devient donc un client interne de l'API TicketFlow.
+1. L'utilisateur saisit une description dans le champ texte.
+2. JavaScript intercepte la soumission du formulaire et affiche un spinner Bootstrap.
+3. La requête est envoyée à `/api/v1/triage` en JSON de manière asynchrone.
+4. Si le triage (effectué dans une transaction SQLite atomique) réussit et retourne `201 Created` :
+   - Le dashboard se recharge pour afficher le nouveau billet.
+   - Le portail demandeur masque le formulaire et affiche le résultat du triage à la place.
+5. En cas d'erreur, une alerte JavaScript affiche le message retourné par l'API sans casser l'expérience utilisateur.
 
 ---
 
-## Sélection du moteur RAG
+## Sélection de l'IA et du moteur RAG (Dashboard)
 
-Le formulaire contient un interrupteur :
+Le dashboard permet de manipuler les requêtes manuellement pour tester l'API :
 
-```text
-Activer le moteur vectoriel ChromaDB
-```
+- **Sélection IA** : Possibilité de forcer l'usage de Gemini, Groq, ou de se replier sur l'algorithmique local pur (Sans IA). Le backend inclut une validation stricte de ces paramètres.
+- **Moteur vectoriel** : Possibilité d'activer ChromaDB au lieu du moteur RAG en mémoire (Basic).
 
-Lorsqu'il est désactivé, le dashboard envoie la requête au moteur `TicketRAGBasic`.
-Lorsqu'il est activé, il ajoute le paramètre booléen `use_chroma: true` au JSON transmis à `POST /api/v1/triage`.
-
-Ce choix est fait pour chaque billet soumis.
-Le technicien peut donc comparer les deux moteurs en temps réel, sans redémarrer Flask.
-
-La colonne `Procédure RAG` affiche la source préfixée par le moteur utilisé, par exemple `[Basic]` ou `[Chroma]`.
+Un mécanisme de cache avec un délai de 5 minutes (retry automatique) a été mis en place pour éviter qu'une erreur de réseau initiale ne bloque définitivement les moteurs RAG.
 
 ---
 
-## Gestion des fuseaux horaires
+## Gestion adaptative des fuseaux horaires
 
-Les dates sont enregistrées côté backend en UTC afin de conserver une référence uniforme dans la base de données.
+Les dates sont enregistrées côté backend en UTC strict.
 
-Dans le tableau, le backend expose la date de création en format ISO dans un attribut HTML :
+Dans le tableau HTML, le backend génère la date de création avec le format ISO exact incluant le suffixe UTC `Z` :
 
 ```html
-data-utc="2026-05-31T20:10:00Z"
+data-utc="2026-06-03T17:35:27Z"
 ```
 
-Le navigateur lit ensuite cette valeur avec JavaScript, crée un objet `Date`, puis affiche la date avec `toLocaleString()`.
-La conversion se fait donc automatiquement selon le fuseau horaire local du technicien.
-
-Cette stratégie évite d'imposer un fuseau horaire côté serveur et améliore l'expérience si l'application est consultée depuis plusieurs postes ou régions.
+Le navigateur lit ensuite cette valeur avec JavaScript, crée un objet `Date` natif, puis affiche la date avec `toLocaleString()`.
+La conversion s'effectue automatiquement selon le fuseau horaire local de la machine de la personne consultant la page.
 
 ---
 
 ## Navigation
 
-La barre de navigation contient :
+La barre de navigation globale (`base.html`) permet de se déplacer entre :
 
-- un lien vers le dashboard via le titre `TicketFlow ITSM` ;
-- un lien `Statut API` vers `/api/v1/status`, ouvert dans un nouvel onglet.
-
-Le lien de statut permet de vérifier rapidement que l'API et le moteur RAG sont disponibles sans quitter le tableau de bord.
+- L'Accueil
+- Le Portail
+- Le Dashboard
+- Le statut de l'API (ouvert dans un nouvel onglet)

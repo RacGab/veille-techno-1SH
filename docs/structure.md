@@ -32,10 +32,12 @@ C'est le cœur de l'application web, structurée avec le patron *Application Fac
 *   **`api/`** : Logique de l'API REST.
     *   `routes.py` : Expose les points de terminaison (`/api/v1/triage`, `/api/v1/status`, `/api/v1/tickets`). C'est ici qu'est orchestré le flux de triage (Gemini -> Groq -> Local).
 *   **`frontend/`** : Logique de l'interface graphique.
-    *   `routes.py` : Expose la route `/dashboard` pour les techniciens.
+    *   `routes.py` : Expose les routes pour la page d'accueil (`/`), le portail demandeur (`/portail`) et le tableau de bord (`/dashboard`).
 *   **`templates/`** : Fichiers HTML (rendus avec Jinja2).
-    *   `base.html` : Squelette principal de la page web (Menu, CSS Bootstrap).
-    *   `dashboard.html` : L'interface principale contenant le formulaire de soumission et le tableau des résultats.
+    *   `base.html` : Squelette principal de la page web (Navigation globale, CSS Bootstrap).
+    *   `landing.html` : Page d'accueil permettant de choisir son rôle.
+    *   `portail.html` : Interface simplifiée pour la création de billets (vue demandeur).
+    *   `dashboard.html` : L'interface technicien contenant le formulaire avancé et le tableau des résultats.
 *   **`data/`** : Fichiers de données et de connaissances.
     *   `knowledge_base.json` : Le "cerveau" du RAG. Contient les procédures ITSM de référence.
     *   `billets_test.json` : Données de test utilisées par les scripts de validation.
