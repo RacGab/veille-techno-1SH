@@ -9,17 +9,20 @@ start /b "Flask Server" .\src\venv\Scripts\python.exe -m flask run
 echo [TicketFlow] Attente de 3 secondes pour laisser le serveur demarrer...
 timeout /t 3 /nobreak > nul
 
-echo [TicketFlow] 2. Ouverture du tunnel securise avec localtunnel...
+echo [TicketFlow] 2. Ouverture du tunnel completement prive avec Serveo...
 echo [TicketFlow] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-echo [TicketFlow] ATTENTION : La premiere fois, le site demandera un mot de passe.
-echo [TicketFlow] Voici l'adresse IP (Endpoint IP) a entrer si demande :
-curl -s https://loca.lt/mytunnelpassword
-echo.
+echo [TicketFlow] Lisez bien la console ci-dessous.
+echo [TicketFlow] Serveo va generer une ligne verte ressemblant a :
+echo [TicketFlow] "Forwarding HTTP traffic from https://[UN_NOM].serveo.net"
+echo [TicketFlow] C'est ce lien exact qu'il faut donner a votre professeur.
+echo [TicketFlow] Votre IP restera 100%% anonyme.
 echo [TicketFlow] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-echo [TicketFlow] Votre site sera disponible a : https://ticketflow-demo.loca.lt
 echo.
-npx localtunnel --port 5000 --subdomain ticketflow-demo
 
-echo [TicketFlow] Fermeture...
+ssh -o StrictHostKeyChecking=no -R 80:localhost:5000 serveo.net
+
+echo.
+echo [TicketFlow] Tunnel ferme.
+echo [TicketFlow] Fermeture du serveur local...
 taskkill /f /im python.exe > nul 2>&1
 pause
