@@ -43,5 +43,39 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Toast container -->
+    <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1080;" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+    window.showToast = function(message, type = "danger") {
+        try {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const colorClassMap = {
+                danger: 'bg-danger text-white',
+                success: 'bg-success text-white',
+                warning: 'bg-warning text-dark',
+                info: 'bg-info text-dark',
+                primary: 'bg-primary text-white'
+            };
+            const color = colorClassMap[type] || colorClassMap.danger;
+            const useWhiteClose = color.includes('text-white');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center border-0 ${color}`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            const closeClass = useWhiteClose ? 'btn-close btn-close-white me-2 m-auto' : 'btn-close me-2 m-auto';
+            toast.innerHTML = `\n                <div class="d-flex">\n                    <div class="toast-body">${message}</div>\n                    <button type="button" class="${closeClass}" data-bs-dismiss="toast" aria-label="Close"></button>\n                </div>\n            `;
+            container.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, {delay: 5000});
+            bsToast.show();
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+        } catch (e) {
+            try { alert(message); } catch (e) { /* ignore */ }
+        }
+    };
+    </script>
 </body>
 </html>

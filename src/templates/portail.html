@@ -92,10 +92,12 @@ const btnNewTicket = document.getElementById("btnNewTicket");
 portailForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    ticketDescription.classList.remove('is-invalid');
     const description = ticketDescription.value.trim();
 
     if (!description) {
-        alert("Veuillez saisir une description de votre problème.");
+        ticketDescription.classList.add('is-invalid');
+        showToast("Veuillez saisir une description de votre problème.", "warning");
         return;
     }
 
@@ -148,9 +150,9 @@ portailForm.addEventListener("submit", async (event) => {
         } catch (error) {
             message = `${message} Code HTTP : ${response.status}`;
         }
-        alert(message);
+        showToast(message, 'danger');
     } catch (error) {
-        alert(`Impossible de joindre le serveur : ${error.message}`);
+        showToast(`Impossible de joindre le serveur : ${error.message}`, 'danger');
     } finally {
         submitButton.disabled = false;
         loadingStatus.classList.add("d-none");
@@ -159,6 +161,7 @@ portailForm.addEventListener("submit", async (event) => {
 
 btnNewTicket.addEventListener("click", () => {
     ticketDescription.value = "";
+    ticketDescription.classList.remove('is-invalid');
     confirmationCard.classList.add("d-none");
     creationCard.classList.remove("d-none");
 });

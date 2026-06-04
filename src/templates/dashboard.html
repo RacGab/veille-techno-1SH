@@ -167,8 +167,12 @@
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        Aucun billet enregistré pour le moment.
+                                    <td colspan="7" class="py-5">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-inbox mb-3 text-muted" viewBox="0 0 16 16"><path d="M4.98 1a1 1 0 0 0-.79.38L2.1 4H.5A.5.5 0 0 0 0 4.5v7A1.5 1.5 0 0 0 1.5 13h13A1.5 1.5 0 0 0 16 11.5v-7a.5.5 0 0 0-.5-.5h-1.6L11.81 1.38A1 1 0 0 0 11.02 1H4.98zM2.1 5l1.4-1.62A1 1 0 0 0 4.98 3h6.04a1 1 0 0 0 .48-.12L13.9 5H2.1z"/></svg>
+                                            <p class="h6 mb-1 text-muted">Aucun billet enregistré pour le moment.</p>
+                                            <p class="small text-muted mb-0">Soumettez un nouveau billet via le formulaire ci-dessus pour obtenir un triage instantané.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -249,10 +253,11 @@ testCases.addEventListener("change", () => {
 triageForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    ticketDescription.classList.remove('is-invalid');
     const description = ticketDescription.value.trim();
-
     if (!description) {
-        alert("Veuillez saisir une description de billet.");
+        ticketDescription.classList.add('is-invalid');
+        showToast("Veuillez saisir une description de billet.", "warning");
         return;
     }
 
@@ -286,9 +291,9 @@ triageForm.addEventListener("submit", async (event) => {
             message = `${message} Code HTTP : ${response.status}`;
         }
 
-        alert(message);
+        showToast(message, 'danger');
     } catch (error) {
-        alert(`Impossible de joindre l'API TicketFlow : ${error.message}`);
+        showToast(`Impossible de joindre l'API TicketFlow : ${error.message}`, 'danger');
     } finally {
         submitButton.disabled = false;
         loadingSpinner.classList.add("d-none");
@@ -336,9 +341,9 @@ btnReset.addEventListener("click", async () => {
             message = `${message} Code HTTP : ${response.status}`;
         }
 
-        alert(message);
+        showToast(message, 'danger');
     } catch (error) {
-        alert(`Impossible de joindre l'API TicketFlow : ${error.message}`);
+        showToast(`Impossible de joindre l'API TicketFlow : ${error.message}`, 'danger');
     } finally {
         btnReset.disabled = false;
     }
