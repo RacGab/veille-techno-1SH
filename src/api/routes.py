@@ -12,7 +12,8 @@ from ..services import (
     groq_triage,
     fallback_triage,
     get_or_create_rag_engine,
-    get_rag_status
+    get_rag_status,
+    get_api_health_status
 )
 
 api_bp = Blueprint('api', __name__)
@@ -32,10 +33,11 @@ def is_reset_authorized():
 @api_bp.route('/status', methods=['GET'])
 def status():
     from flask import current_app
+    
     return jsonify({
         "status": "API TicketFlow fonctionnelle", 
-        "ia_gemini": "Prêt" if client is not None else "Clé manquante",
-        "ia_groq": "Prêt" if GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici" else "Clé manquante",
+        "ia_gemini": get_api_health_status("gemini") if client is not None else "Clé manquante",
+        "ia_groq": get_api_health_status("groq") if GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici" else "Clé manquante",
         "rag_basic": get_rag_status("basic"),
         "rag_chroma": get_rag_status("chroma"),
         "reset_admin": "Configuré" if current_app.config.get("ADMIN_RESET_TOKEN") else "Non configuré",

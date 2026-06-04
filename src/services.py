@@ -7,6 +7,16 @@ from pydantic import BaseModel, Field
 from groq import Groq
 from .rag_utils import get_rag_engine
 
+# Suivi de l'état de santé des APIs (mémoire du dernier appel)
+api_health_status = {
+    "gemini": "Configuré (En attente)",
+    "groq": "Configuré (En attente)"
+}
+
+def get_api_health_status(engine_key: str) -> str:
+    """Retourne l'état textuel d'une API."""
+    return api_health_status.get(engine_key, "Inconnu")
+
 # Chemin vers la base de connaissances (relatif à ce fichier)
 KNOWLEDGE_BASE_PATH = os.path.join(os.path.dirname(__file__), 'data', 'knowledge_base.json')
 
@@ -313,18 +323,34 @@ def process_ticket_triage(description: str, use_chroma: bool, ai_provider: str, 
             rag_warning = f"Recherche RAG {rag_engine_name} ignorée (erreur réseau/timeout)."
             print(f"Échec RAG silencieux: {e}")
     
+    # 2. CONSTRUCTION DU PROMPT
+    # SEUIL DE CONFIANCE : On ne fournit la procédure à l'IA que si elle est vraiment pertinente (> 75%)
+    RAG_THRESHOLD = 0.75
+    procedure_is_reliable = procedure and procedure.get('score_similarite', 0) >= RAG_THRESHOLD
+
     prompt = "Tu es un agent de triage ITSM expert pour un centre de services TI.\n"
     prompt += "Tu dois classifier uniquement des incidents de soutien informatique aux utilisateurs.\n"
-    prompt += "Si la demande concerne de la programmation pure, de la révision de code, du débogage applicatif ou un framework de développement, assigne la priorité 'Faible' et indique que le centre de services ne fait pas de débogage de code.\n"
+    prompt += "DIRECTIVES DE PRIORITÉ ET CATÉGORIE :\n"
+    prompt += "- SÉCURITÉ : Tout signalement de CONTOURNEMENT effectif de politique de sécurité ou faille technique (ex: contourner Intune, accès non autorisé) est 'Logiciel'/'Critique'.\n"
+    prompt += "- PHISHING : Un simple signalement de courriel suspect SANS clic ni compromission est 'Accès' et priorité 'Moyen'.\n"
+    prompt += "- IMPACT MÉTIER : Si un département entier est à l'arrêt ou qu'une fonction critique métier (ex: paie, finances) est bloquée, la priorité est TOUJOURS 'Critique'.\n"
+    prompt += "- RÉSEAU : Tout équipement réseau (switch, routeur, borne wifi, commutateur), même s'il est physiquement endommagé, appartient à la catégorie 'Réseau'.\n"
+    prompt += "- ACCÈS : Un compte verrouillé empêchant de travailler est 'Accès' et priorité 'Élevé'.\n"
+    prompt += "- MATÉRIEL : Les écrans bleus (BSOD), surchauffes ou bruits physiques suspects du POSTE DE TRAVAIL sont 'Matériel' et priorité 'Élevé'.\n"
+    prompt += "- COSMÉTIQUE / PETITS BOGUES : Demandes de confort (fond d'écran), raccourcis clavier Ctrl+C/V, ou accès à un site non-essentiel (ex: cafétéria) sont 'Faible' priorité.\n"
+    prompt += "- DÉVELOPPEMENT : Les problèmes liés au développement local (ex: erreur de compilation, NPM, Node.js) sont 'Logiciel' et priorité 'Faible'.\n"
     prompt += "Les catégories autorisées sont strictement : Matériel, Logiciel, Réseau, Accès.\n"
     prompt += "Les priorités autorisées sont strictement : Faible, Moyen, Élevé, Critique.\n"
     prompt += f"Analyse le ticket utilisateur suivant :\n'{description}'\n\n"
     
-    if procedure:
+    if procedure_is_reliable:
         prompt += f"--- PROCÉDURE INTERNE TROUVÉE ({procedure['titre']}) ---\n"
         prompt += f"{procedure['contenu']}\n"
         prompt += "--------------------------------------\n"
         prompt += "IMPORTANT: Base ton triage en priorité sur cette procédure.\n"
+    elif procedure:
+        prompt += f"Note: Une procédure potentielle a été trouvée ({procedure['titre']}) mais son score de pertinence est faible ({procedure.get('score_similarite')}).\n"
+        prompt += "Utilise ton propre jugement professionnel d'ITSM pour trier ce ticket, la procédure pourrait être hors-sujet.\n"
     else:
         prompt += "Aucune procédure spécifique n'a été trouvée. Utilise ton jugement professionnel standard d'ITSM.\n"
         
@@ -350,20 +376,30 @@ def process_ticket_triage(description: str, use_chroma: bool, ai_provider: str, 
             )
             result_json = parse_triage_response(response.text)
             model_used = 'gemini-2.5-flash'
+            api_health_status["gemini"] = "Actif"
         except Exception as e:
             print(f"Erreur Gemini (Réseau ou Validation): {e}")
             ai_warning = f"Échec Gemini ({type(e).__name__}). Passage au fallback."
+            if is_quota_error(e):
+                api_health_status["gemini"] = "Quota dépassé (429)"
+            else:
+                api_health_status["gemini"] = "Erreur (Inactif)"
 
     # Niveau 2 : Groq
     if result_json is None and ai_provider in ['auto', 'groq'] and GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici":
         try:
             result_json = groq_triage(description, prompt, GROQ_API_KEY)
             model_used = 'groq/llama-3.3-70b'
+            api_health_status["groq"] = "Actif"
             if ai_provider == 'auto':
                 ai_warning = "Gemini indisponible; triage via Groq (Llama 3) utilisé."
         except Exception as e:
             print(f"Erreur Groq: {e}")
             ai_warning = "Échec Gemini et Groq. Passage au fallback local."
+            if "429" in str(e).lower() or "rate limit" in str(e).lower():
+                api_health_status["groq"] = "Quota dépassé (429)"
+            else:
+                api_health_status["groq"] = "Erreur (Inactif)"
 
     # Niveau 3 : Triage Local
     if result_json is None:

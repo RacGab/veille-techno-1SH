@@ -208,8 +208,13 @@ async function loadStatus() {
         const response = await fetch("/api/v1/status");
         const data = await response.json();
         
-        let geminiBadge = data.ia_gemini === "Prêt" ? "bg-success" : "bg-danger";
-        let groqBadge = data.ia_groq === "Prêt" ? "bg-success" : "bg-danger";
+        let geminiBadge = "bg-danger";
+        if (data.ia_gemini === "Actif") geminiBadge = "bg-success";
+        else if (data.ia_gemini === "Configuré (En attente)") geminiBadge = "bg-warning text-dark";
+
+        let groqBadge = "bg-danger";
+        if (data.ia_groq === "Actif") groqBadge = "bg-success";
+        else if (data.ia_groq === "Configuré (En attente)") groqBadge = "bg-warning text-dark";
         
         aiStatusBadge.innerHTML = `
             <span class="badge ${geminiBadge}">Gemini: ${data.ia_gemini}</span>

@@ -17,7 +17,7 @@ echo [TicketFlow] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo [TicketFlow] Lisez bien la console ci-dessous.
 echo [TicketFlow] Serveo va generer une ligne verte ressemblant a :
 echo [TicketFlow] "Forwarding HTTP traffic from https://[UN_NOM].serveo.net"
-echo [TicketFlow] C'est ce lien exact qu'il faut donner a votre professeur.
+echo [TicketFlow] C'est ce lien exact qu'il faut donner.
 echo [TicketFlow] Votre IP restera 100%% anonyme.
 echo [TicketFlow] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo.
