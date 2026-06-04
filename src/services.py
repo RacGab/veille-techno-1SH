@@ -278,3 +278,148 @@ def get_rag_status(engine_key: str) -> str:
         return f"Erreur : {engine_state['error']}"
 
     return "Non initialisé"
+
+
+def process_ticket_triage(description: str, use_chroma: bool, ai_provider: str, client: Any) -> dict:
+    """
+    Orchestre la logique métier complète du triage :
+    1. Sauvegarde garantie du billet
+    2. Récupération RAG
+    3. Construction du prompt
+    4. Appel aux LLMs avec validation stricte (Gemini -> Groq -> Local)
+    5. Fallback ultime en cas de panne globale
+    """
+    from .extensions import db
+    from .models import Ticket, RagHistory, TriageResult
+    import os
+
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+    # 1. SAUVEGARDE GARANTIE : On sécurise la requête utilisateur immédiatement
+    ticket = Ticket(description=description, statut='En attente')
+    db.session.add(ticket)
+
+    engine, engine_error = get_or_create_rag_engine(client, use_chroma=use_chroma)
+    rag_engine_name = "Chroma" if use_chroma else "Basic"
+    rag_warning = None
+    procedure = None
+
+    if engine is None:
+        rag_warning = f"Le moteur RAG {rag_engine_name} n'est pas disponible : {engine_error}"
+    else:
+        try:
+            procedure = engine.find_relevant_procedure(description)
+        except Exception as e:
+            rag_warning = f"Recherche RAG {rag_engine_name} ignorée (erreur réseau/timeout)."
+            print(f"Échec RAG silencieux: {e}")
+    
+    prompt = "Tu es un agent de triage ITSM expert pour un centre de services TI.\n"
+    prompt += "Tu dois classifier uniquement des incidents de soutien informatique aux utilisateurs.\n"
+    prompt += "Si la demande concerne de la programmation pure, de la révision de code, du débogage applicatif ou un framework de développement, assigne la priorité 'Faible' et indique que le centre de services ne fait pas de débogage de code.\n"
+    prompt += "Les catégories autorisées sont strictement : Matériel, Logiciel, Réseau, Accès.\n"
+    prompt += "Les priorités autorisées sont strictement : Faible, Moyen, Élevé, Critique.\n"
+    prompt += f"Analyse le ticket utilisateur suivant :\n'{description}'\n\n"
+    
+    if procedure:
+        prompt += f"--- PROCÉDURE INTERNE TROUVÉE ({procedure['titre']}) ---\n"
+        prompt += f"{procedure['contenu']}\n"
+        prompt += "--------------------------------------\n"
+        prompt += "IMPORTANT: Base ton triage en priorité sur cette procédure.\n"
+    else:
+        prompt += "Aucune procédure spécifique n'a été trouvée. Utilise ton jugement professionnel standard d'ITSM.\n"
+        
+    ai_fallback = False
+    ai_warning = None
+    model_used = None
+    result_json = None
+
+    # 2. CASCADE DE TRIAGE (Try/Except robustes sur chaque niveau)
+    
+    # Niveau 1 : Gemini
+    if ai_provider in ['auto', 'gemini'] and client:
+        try:
+            from google.genai import types
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=TriageResponse,
+                    temperature=0.1
+                ),
+            )
+            result_json = parse_triage_response(response.text)
+            model_used = 'gemini-2.5-flash'
+        except Exception as e:
+            print(f"Erreur Gemini (Réseau ou Validation): {e}")
+            ai_warning = f"Échec Gemini ({type(e).__name__}). Passage au fallback."
+
+    # Niveau 2 : Groq
+    if result_json is None and ai_provider in ['auto', 'groq'] and GROQ_API_KEY and GROQ_API_KEY != "votre_cle_groq_ici":
+        try:
+            result_json = groq_triage(description, prompt, GROQ_API_KEY)
+            model_used = 'groq/llama-3.3-70b'
+            if ai_provider == 'auto':
+                ai_warning = "Gemini indisponible; triage via Groq (Llama 3) utilisé."
+        except Exception as e:
+            print(f"Erreur Groq: {e}")
+            ai_warning = "Échec Gemini et Groq. Passage au fallback local."
+
+    # Niveau 3 : Triage Local
+    if result_json is None:
+        try:
+            result_json = fallback_triage(description, procedure)
+            ai_fallback = True
+            model_used = 'fallback-local'
+            if not ai_warning:
+                ai_warning = "Triage IA ignoré/échoué, utilisation de l'algorithme local."
+        except Exception as e:
+            print(f"Erreur algorithme local: {e}")
+            
+    # Niveau 4 : REPLI GRACIEUX ULTIME (Graceful Fallback)
+    if result_json is None:
+        result_json = {
+            "categorie": "Logiciel",
+            "priorite": "Moyen",
+            "justification": "Échec critique de tous les moteurs d'analyse. Le billet a été enregistré et nécessite une revue manuelle."
+        }
+        ai_fallback = True
+        model_used = "erreur-systeme"
+        ai_warning = "ALERTE: Panne complète des systèmes de triage."
+        ticket.statut = 'Non classé'
+    else:
+        ticket.statut = 'Trié'
+
+    # 3. ENREGISTREMENT RAG ET RÉSULTAT
+    if procedure:
+        rag_entry = RagHistory(
+            ticket=ticket,
+            contexte_retrouve=procedure.get('contenu') or str(procedure),
+            source=f"[{rag_engine_name}] {procedure.get('titre')}",
+            score_similarite=procedure.get('score_similarite'),
+            categorie_reference=procedure.get('categorie'),
+            priorite_reference=procedure.get('priorite'),
+        )
+        db.session.add(rag_entry)
+
+    triage_result = TriageResult(
+        ticket=ticket,
+        categorie=result_json['categorie'],
+        priorite=result_json['priorite'],
+        justification=result_json['justification'],
+        modele_ia=model_used,
+    )
+    db.session.add(triage_result)
+    
+    db.session.commit()
+    
+    result_json['_meta'] = {
+        "ticket_id": ticket.id,
+        "rag_utilise": procedure['titre'] if procedure else False,
+        "moteur_rag": rag_engine_name,
+        "fallback_local": ai_fallback,
+        "avertissement_ia": ai_warning,
+        "avertissement_rag": rag_warning,
+    }
+    
+    return result_json

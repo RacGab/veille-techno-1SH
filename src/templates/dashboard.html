@@ -26,26 +26,27 @@
                             <option value="panique_aveugle">Panique sans contexte</option>
                             <option value="faux_positif">Faux positif écran bleu</option>
                         </select>
-                        <div class="row mb-3">
+                        <div class="row align-items-center bg-light p-3 rounded mb-3 border">
                             <div class="col-md-6 mb-3 mb-md-0">
-                                <label for="aiProvider" class="form-label fw-semibold">Modèle IA</label>
+                                <label for="aiProvider" class="form-label fw-semibold mb-1">Modèle d'Analyse IA</label>
                                 <select class="form-select form-select-sm" id="aiProvider">
                                     <option value="auto">Auto (Gemini -> Groq -> Local)</option>
                                     <option value="gemini">Google Gemini 2.5 Flash</option>
                                     <option value="groq">Groq Llama 3.3 70B</option>
                                     <option value="local">Algorithmique Local (Sans IA)</option>
                                 </select>
-                                <div id="aiStatusBadge" class="form-text mt-1 d-flex gap-2">
+                                <div id="aiStatusBadge" class="form-text mt-2 d-flex gap-2">
                                     <span class="badge bg-secondary">Gemini: Chargement...</span>
                                     <span class="badge bg-secondary">Groq: Chargement...</span>
                                 </div>
                             </div>
-                            <div class="col-md-6 d-flex flex-column justify-content-center">
-                                <div class="form-check form-switch mt-md-4">
-                                    <input class="form-check-input" type="checkbox" id="chromaSwitch">
-                                    <label class="form-check-label" for="chromaSwitch">
-                                        Activer le moteur vectoriel ChromaDB
+                            <div class="col-md-6 border-md-start">
+                                <div class="form-check form-switch ps-md-4">
+                                    <input class="form-check-input" type="checkbox" id="chromaSwitch" role="switch">
+                                    <label class="form-check-label fw-semibold" for="chromaSwitch">
+                                        Recherche Vectorielle (ChromaDB)
                                     </label>
+                                    <div class="form-text small">Utilise l'historique pour améliorer l'analyse.</div>
                                 </div>
                             </div>
                         </div>
@@ -62,13 +63,12 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
-                        <button id="submitButton" type="submit" class="btn btn-primary">
-                            Soumettre pour Triage IA
+                        <button id="submitButton" type="submit" class="btn btn-primary d-flex justify-content-center align-items-center gap-2">
+                            <span id="buttonText">Soumettre pour Triage IA</span>
+                            <div id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                <span class="visually-hidden">Chargement...</span>
+                            </div>
                         </button>
-
-                        <div id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status">
-                            <span class="visually-hidden">Chargement...</span>
-                        </div>
                     </div>
                 </form>
             </div>
@@ -296,6 +296,7 @@ triageForm.addEventListener("submit", async (event) => {
         showToast(`Impossible de joindre l'API TicketFlow : ${error.message}`, 'danger');
     } finally {
         submitButton.disabled = false;
+        buttonText.textContent = "Soumettre pour Triage IA";
         loadingSpinner.classList.add("d-none");
     }
 });

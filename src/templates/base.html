@@ -18,13 +18,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('frontend.index') }}">Accueil</a>
+                        <a class="nav-link {% if request.endpoint == 'frontend.index' %}active fw-bold{% endif %}" href="{{ url_for('frontend.index') }}">Accueil</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('frontend.portail') }}">Portail</a>
+                        <a class="nav-link {% if request.endpoint == 'frontend.portail' %}active fw-bold{% endif %}" href="{{ url_for('frontend.portail') }}">Portail</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('frontend.dashboard') }}">Dashboard</a>
+                        <a class="nav-link {% if request.endpoint == 'frontend.dashboard' %}active fw-bold{% endif %}" href="{{ url_for('frontend.dashboard') }}">Dashboard</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav flex-row">
