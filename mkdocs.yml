@@ -23,6 +23,7 @@ nav:
   - Architecture des données: database.md
   - Interface Web: interface_web.md
   - Guide Technique: basics.md
+  - Rapport Final: rapport_final.md
 
 markdown_extensions:
   - admonition
