@@ -1,3 +1,5 @@
+Lien vers le rapport final : https://racgab.github.io/veille-techno-1SH/rapport_final/
+
 # Proposition formelle : Veille technologique (420-1SH-SW)
 
 **Titre du projet** : Automatisation du triage des incidents informatiques via une API Flask et l'IA  
