@@ -1,0 +1,986 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation de recherche pour le projet TicketFlow">
+      
+      
+        <meta name="author" content="Gabriel Racine">
+      
+      
+        <link rel="canonical" href="https://RacGab.github.io/veille-techno-1SH/interface_web/">
+      
+      
+        <link rel="prev" href="../database/">
+      
+      
+        <link rel="next" href="../basics/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Interface Web - TicketFlow - Veille Technologique</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#interface-web" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="TicketFlow - Veille Technologique" class="md-header__button md-logo" aria-label="TicketFlow - Veille Technologique" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            TicketFlow - Veille Technologique
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Interface Web
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Accueil
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../structure/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Structure du Projet
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../recherche/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Recherche
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture_rag/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture RAG
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../database/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture des données
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interface Web
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../basics/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide Technique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../rapport_final/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Rapport Final
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="TicketFlow - Veille Technologique" class="md-nav__button md-logo" aria-label="TicketFlow - Veille Technologique" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    TicketFlow - Veille Technologique
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structure du Projet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recherche/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recherche
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture_rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture des données
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interface Web
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interface Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#separation-avec-les-blueprints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Séparation avec les Blueprints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendu-avec-jinja2-et-bootstrap-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendu avec Jinja2 et Bootstrap 5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fonctionnement-du-dashboard-technicien" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fonctionnement du dashboard technicien
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soumission-asynchrone-avec-fetch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soumission asynchrone avec fetch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-de-lia-et-du-moteur-rag-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sélection de l'IA et du moteur RAG (Dashboard)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gestion-adaptative-des-fuseaux-horaires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gestion adaptative des fuseaux horaires
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide Technique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rapport_final/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rapport Final
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#separation-avec-les-blueprints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Séparation avec les Blueprints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendu-avec-jinja2-et-bootstrap-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendu avec Jinja2 et Bootstrap 5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fonctionnement-du-dashboard-technicien" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fonctionnement du dashboard technicien
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soumission-asynchrone-avec-fetch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soumission asynchrone avec fetch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-de-lia-et-du-moteur-rag-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sélection de l'IA et du moteur RAG (Dashboard)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gestion-adaptative-des-fuseaux-horaires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gestion adaptative des fuseaux horaires
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="interface-web">Interface Web</h1>
+<p>Le projet propose une interface web complète directement intégrée à l'application Flask, remplaçant la nécessité d'utiliser Postman ou <code>curl</code>.</p>
+<p>L'interface offre désormais une expérience séparée selon le rôle de l'utilisateur :</p>
+<ul>
+<li><strong>Page d'accueil (<code>/</code>)</strong> : Choix du portail.</li>
+<li><strong>Portail Demandeur (<code>/portail</code>)</strong> : Formulaire épuré pour la soumission de billets sans métadonnées superflues.</li>
+<li><strong>Dashboard Technicien (<code>/dashboard</code>)</strong> : Vue globale des billets triés et options avancées (sélection de l'IA, moteur RAG).</li>
+</ul>
+<hr />
+<h2 id="separation-avec-les-blueprints">Séparation avec les Blueprints</h2>
+<p>La logique web est isolée dans le fichier <code>src/frontend/routes.py</code> à l'aide d'un Blueprint Flask nommé <code>frontend</code>.</p>
+<p>Cette séparation permet de distinguer deux responsabilités :</p>
+<ul>
+<li><code>src/api/routes.py</code> conserve les routes API, comme <code>POST /api/v1/triage</code> et <code>GET /api/v1/status</code> ;</li>
+<li><code>src/frontend/routes.py</code> gère les routes destinées à l'interface web (<code>/</code>, <code>/portail</code>, <code>/dashboard</code>).</li>
+</ul>
+<p>Le Blueprint est enregistré dans l'application principale avec <code>app.register_blueprint(frontend_bp)</code>.
+Cette approche prépare le projet à une architecture plus modulaire, où l'API REST et l'interface utilisateur peuvent évoluer séparément.</p>
+<hr />
+<h2 id="rendu-avec-jinja2-et-bootstrap-5">Rendu avec Jinja2 et Bootstrap 5</h2>
+<p>L'interface utilise les templates Jinja2 placés dans le dossier :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/templates/
+</code></pre></div>
+<p>Quatre templates principaux structurent l'interface :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Fichier</th>
+<th style="text-align: left;">Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>base.html</code></td>
+<td style="text-align: left;">Layout commun, CDN Bootstrap 5, barre de navigation globale et bloc de contenu</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>landing.html</code></td>
+<td style="text-align: left;">Page d'accueil présentant les deux points d'accès</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>portail.html</code></td>
+<td style="text-align: left;">Formulaire simplifié pour les demandeurs (retour d'informations ciblé)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dashboard.html</code></td>
+<td style="text-align: left;">Formulaire avancé et tableau des billets triés pour les techniciens</td>
+</tr>
+</tbody>
+</table>
+<p>Bootstrap 5 est utilisé pour accélérer la mise en forme (composants responsifs, spinners, alertes).</p>
+<hr />
+<h2 id="fonctionnement-du-dashboard-technicien">Fonctionnement du dashboard technicien</h2>
+<p>La route <code>/dashboard</code> récupère les billets depuis SQLite avec SQLAlchemy.
+Elle charge aussi les relations associées :</p>
+<ul>
+<li><code>TriageResult</code> pour afficher la catégorie, la priorité et la justification ;</li>
+<li><code>RagHistory</code> pour afficher la procédure RAG utilisée et son score de similarité.</li>
+</ul>
+<p>Les billets sont triés du plus récent au plus ancien.</p>
+<hr />
+<h2 id="soumission-asynchrone-avec-fetch">Soumission asynchrone avec <code>fetch</code></h2>
+<p>Les formulaires du portail et du dashboard ne rechargent pas immédiatement la page.
+Ils utilisent JavaScript et <code>fetch()</code> pour envoyer la description du billet à l'API interne :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>POST /api/v1/triage
+</code></pre></div>
+<p>Le flux est le suivant :</p>
+<ol>
+<li>L'utilisateur saisit une description dans le champ texte.</li>
+<li>JavaScript intercepte la soumission du formulaire et affiche un spinner Bootstrap.</li>
+<li>La requête est envoyée à <code>/api/v1/triage</code> en JSON de manière asynchrone.</li>
+<li>Si le triage (effectué dans une transaction SQLite atomique) réussit et retourne <code>201 Created</code> :</li>
+<li>Le dashboard se recharge pour afficher le nouveau billet.</li>
+<li>Le portail demandeur masque le formulaire et affiche le résultat du triage à la place.</li>
+<li>En cas d'erreur, une alerte JavaScript affiche le message retourné par l'API sans casser l'expérience utilisateur.</li>
+</ol>
+<hr />
+<h2 id="selection-de-lia-et-du-moteur-rag-dashboard">Sélection de l'IA et du moteur RAG (Dashboard)</h2>
+<p>Le dashboard permet de manipuler les requêtes manuellement pour tester l'API :</p>
+<ul>
+<li><strong>Sélection IA</strong> : Possibilité de forcer l'usage de Gemini, Groq, ou de se replier sur l'algorithmique local pur (Sans IA). Le backend inclut une validation stricte de ces paramètres.</li>
+<li><strong>Moteur vectoriel</strong> : Possibilité d'activer ChromaDB au lieu du moteur RAG en mémoire (Basic).</li>
+</ul>
+<p>Un mécanisme de cache avec un délai de 5 minutes (retry automatique) a été mis en place pour éviter qu'une erreur de réseau initiale ne bloque définitivement les moteurs RAG.</p>
+<hr />
+<h2 id="gestion-adaptative-des-fuseaux-horaires">Gestion adaptative des fuseaux horaires</h2>
+<p>Les dates sont enregistrées côté backend en UTC strict.</p>
+<p>Dans le tableau HTML, le backend génère la date de création avec le format ISO exact incluant le suffixe UTC <code>Z</code> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>data-utc=&quot;2026-06-03T17:35:27Z&quot;
+</code></pre></div>
+<p>Le navigateur lit ensuite cette valeur avec JavaScript, crée un objet <code>Date</code> natif, puis affiche la date avec <code>toLocaleString()</code>.
+La conversion s'effectue automatiquement selon le fuseau horaire local de la machine de la personne consultant la page.</p>
+<hr />
+<h2 id="navigation">Navigation</h2>
+<p>La barre de navigation globale (<code>base.html</code>) permet de se déplacer entre :</p>
+<ul>
+<li>L'Accueil</li>
+<li>Le Portail</li>
+<li>Le Dashboard</li>
+<li>Le statut de l'API (ouvert dans un nouvel onglet)</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
